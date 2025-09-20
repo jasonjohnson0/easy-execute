@@ -6,6 +6,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Grid3X3, List, Filter, TrendingUp } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { DealCard } from '@/components/DealCard';
+import { AuthModal } from '@/components/AuthModal';
 import { useAuth } from '@/hooks/useAuth';
 import { mockDeals, mockSponsoredOffers, DEAL_CATEGORIES, USE_MOCK_DEALS } from '@/data/mockData';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,6 +22,7 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [layout, setLayout] = useState<'grid' | 'coupon'>('grid');
   const [showRegularDeals, setShowRegularDeals] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     const fetchDeals = async () => {
@@ -145,9 +147,15 @@ const Index = () => {
                     variant="hero" 
                     size="lg" 
                     className="text-lg px-8"
-                    onClick={() => setShowRegularDeals(true)}
+                    onClick={() => {
+                      if (user) {
+                        setShowRegularDeals(true);
+                      } else {
+                        setShowAuthModal(true);
+                      }
+                    }}
                   >
-                    Start Discovering Deals
+                    {user ? 'Start Discovering Deals' : 'Subscribe to Discover Deals'}
                   </Button>
                   {!user && (
                     <Button variant="outline" size="lg" className="text-lg px-8">
@@ -238,7 +246,7 @@ const Index = () => {
           )}
 
           {/* Regular Deals */}
-          {showRegularDeals && filteredDeals.length > 0 ? (
+          {user && showRegularDeals && filteredDeals.length > 0 ? (
             <div className={`grid gap-6 ${
               layout === 'grid' 
                 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
@@ -252,7 +260,7 @@ const Index = () => {
                 />
               ))}
             </div>
-          ) : showRegularDeals && filteredDeals.length === 0 ? (
+          ) : user && showRegularDeals && filteredDeals.length === 0 ? (
             <div className="text-center py-12">
               <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No deals found</h3>
@@ -272,6 +280,16 @@ const Index = () => {
           ) : null}
         </div>
       </section>
+
+      {/* Auth Modal for subscription */}
+      <AuthModal
+        open={showAuthModal}
+        onOpenChange={setShowAuthModal}
+        mode="signup"
+        userType="hunter"
+        onModeChange={() => {}}
+        onUserTypeChange={() => {}}
+      />
     </div>
   );
 };
