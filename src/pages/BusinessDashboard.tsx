@@ -37,13 +37,11 @@ export default function BusinessDashboard() {
 
   // Check if business profile is complete
   const isBusinessProfileComplete = (profile: any) => {
-    // Temporarily always return false for demo purposes
-    return false;
-    // return profile && 
-    //        profile.name && 
-    //        profile.description && 
-    //        profile.category && 
-    //        profile.address;
+    return profile && 
+           profile.name && 
+           profile.description && 
+           profile.category && 
+           profile.address;
   };
 
   useEffect(() => {
