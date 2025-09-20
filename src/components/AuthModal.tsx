@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Store, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { DEAL_CATEGORIES } from '@/data/mockData';
 
 interface AuthModalProps {
@@ -59,30 +58,21 @@ export function AuthModal({
         }
       } else {
         // Sign up
-        const { data, error } = await signUp(email, password, userType);
+        const { data, error } = await signUp(
+          email, 
+          password, 
+          userType, 
+          userType === 'business' ? businessData : undefined
+        );
         if (error) {
           setError(error.message);
           return;
         }
 
-        // If business signup, create business profile
-        if (userType === 'business' && data.user) {
-          const { error: profileError } = await (supabase as any)
-            .from('businesses')
-            .insert({
-              id: data.user.id,
-              name: businessData.name,
-              email: email,
-              phone: businessData.phone,
-              address: businessData.address,
-              category: businessData.category,
-              description: businessData.description
-            });
-
-          if (profileError) {
-            setError('Account created but failed to set up business profile. Please contact support.');
-            return;
-          }
+        // Show success message for email confirmation
+        if (data.user && !data.session) {
+          setError('Please check your email to confirm your account before signing in.');
+          return;
         }
       }
 

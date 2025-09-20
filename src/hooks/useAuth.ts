@@ -17,6 +17,9 @@ export function useAuth() {
 
   const fetchUserProfile = async (authUser: User) => {
     try {
+      // Check if this is a new user that needs profile creation
+      const userMetadata = authUser.user_metadata;
+      
       // Check if user is a business owner
       const { data: business } = await (supabase as any)
         .from('businesses')
@@ -30,6 +33,52 @@ export function useAuth() {
         .select('*')
         .eq('id', authUser.id)
         .maybeSingle();
+
+      // If this is a new business user without a profile, create it
+      if (userMetadata?.user_type === 'business' && !business && userMetadata?.business_data) {
+        try {
+          await createBusinessProfile(authUser, userMetadata.business_data, authUser.email || '');
+          // Refresh business data after creation
+          const { data: newBusiness } = await (supabase as any)
+            .from('businesses')
+            .select('*')
+            .eq('id', authUser.id)
+            .maybeSingle();
+          
+          const userWithProfiles: AuthUser = {
+            ...authUser,
+            businessProfile: newBusiness || undefined,
+            userProfile: profile || undefined
+          };
+          setUser(userWithProfiles);
+          return;
+        } catch (error) {
+          console.error('Failed to create business profile on login:', error);
+        }
+      }
+
+      // If this is a new hunter user without a profile, create it
+      if (userMetadata?.user_type === 'hunter' && !profile) {
+        try {
+          await createUserProfile(authUser);
+          // Refresh profile data after creation
+          const { data: newProfile } = await (supabase as any)
+            .from('user_profiles')
+            .select('*')
+            .eq('id', authUser.id)
+            .maybeSingle();
+          
+          const userWithProfiles: AuthUser = {
+            ...authUser,
+            businessProfile: business || undefined,
+            userProfile: newProfile || undefined
+          };
+          setUser(userWithProfiles);
+          return;
+        } catch (error) {
+          console.error('Failed to create user profile on login:', error);
+        }
+      }
 
       const userWithProfiles: AuthUser = {
         ...authUser,
@@ -82,20 +131,62 @@ export function useAuth() {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, userType: 'hunter' | 'business') => {
+  const signUp = async (email: string, password: string, userType: 'hunter' | 'business', businessData?: any) => {
+    const redirectUrl = `${window.location.origin}/`;
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: {
+          user_type: userType,
+          business_data: businessData
+        }
+      }
     });
 
-    if (!error && data.user && userType === 'hunter') {
-      // Create user profile for deal hunters
-      await (supabase as any).from('user_profiles').insert({
-        id: data.user.id,
-      });
-    }
-
     return { data, error };
+  };
+
+  const createBusinessProfile = async (user: User, businessData: any, email: string) => {
+    try {
+      const { error } = await (supabase as any)
+        .from('businesses')
+        .insert({
+          id: user.id,
+          name: businessData.name,
+          email: email,
+          phone: businessData.phone,
+          address: businessData.address,
+          category: businessData.category,
+          description: businessData.description
+        });
+
+      if (error) {
+        console.error('Error creating business profile:', error);
+        throw new Error('Failed to create business profile');
+      }
+    } catch (error) {
+      console.error('Error in createBusinessProfile:', error);
+      throw error;
+    }
+  };
+
+  const createUserProfile = async (user: User) => {
+    try {
+      const { error } = await (supabase as any).from('user_profiles').insert({
+        id: user.id,
+      });
+
+      if (error) {
+        console.error('Error creating user profile:', error);
+        throw new Error('Failed to create user profile');
+      }
+    } catch (error) {
+      console.error('Error in createUserProfile:', error);
+      throw error;
+    }
   };
 
   const signOut = async () => {
@@ -109,5 +200,7 @@ export function useAuth() {
     signIn,
     signUp,
     signOut,
+    createBusinessProfile,
+    createUserProfile,
   };
 }
