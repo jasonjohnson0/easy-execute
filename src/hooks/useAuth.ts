@@ -110,9 +110,13 @@ export function useAuth() {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
+        // Only synchronous state updates here
         if (session?.user) {
-          await fetchUserProfile(session.user);
+          // Defer Supabase calls with setTimeout to prevent deadlocks
+          setTimeout(() => {
+            fetchUserProfile(session.user);
+          }, 0);
         } else {
           setUser(null);
         }
