@@ -104,7 +104,7 @@ export default function CreateDeal() {
 
     try {
       if (!USE_MOCK_DEALS) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('deals')
           .insert({
             business_id: user.businessProfile.id,

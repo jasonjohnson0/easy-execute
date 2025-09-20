@@ -14,7 +14,180 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      businesses: {
+        Row: {
+          address: string | null
+          category: string
+          created_at: string
+          description: string | null
+          email: string
+          id: string
+          logo_url: string | null
+          name: string
+          phone: string | null
+          referral_code: string
+          referred_by: string | null
+          subscription_plan: string
+          subscription_status: string
+        }
+        Insert: {
+          address?: string | null
+          category: string
+          created_at?: string
+          description?: string | null
+          email: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          phone?: string | null
+          referral_code?: string
+          referred_by?: string | null
+          subscription_plan?: string
+          subscription_status?: string
+        }
+        Update: {
+          address?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          email?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          referral_code?: string
+          referred_by?: string | null
+          subscription_plan?: string
+          subscription_status?: string
+        }
+        Relationships: []
+      }
+      deals: {
+        Row: {
+          business_id: string
+          created_at: string
+          description: string
+          discount_type: string
+          discount_value: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          prints: number
+          terms: string
+          title: string
+          updated_at: string
+          views: number
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          description: string
+          discount_type: string
+          discount_value: string
+          expires_at: string
+          id?: string
+          is_active?: boolean
+          prints?: number
+          terms: string
+          title: string
+          updated_at?: string
+          views?: number
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          description?: string
+          discount_type?: string
+          discount_value?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          prints?: number
+          terms?: string
+          title?: string
+          updated_at?: string
+          views?: number
+        }
+        Relationships: []
+      }
+      sponsored_offers: {
+        Row: {
+          banner_image_url: string | null
+          banner_link_url: string | null
+          business_id: string
+          clicks: number
+          created_at: string
+          description: string | null
+          discount_type: string | null
+          discount_value: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          offer_type: string
+          terms: string | null
+          title: string
+          updated_at: string
+          views: number
+        }
+        Insert: {
+          banner_image_url?: string | null
+          banner_link_url?: string | null
+          business_id: string
+          clicks?: number
+          created_at?: string
+          description?: string | null
+          discount_type?: string | null
+          discount_value?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          offer_type: string
+          terms?: string | null
+          title: string
+          updated_at?: string
+          views?: number
+        }
+        Update: {
+          banner_image_url?: string | null
+          banner_link_url?: string | null
+          business_id?: string
+          clicks?: number
+          created_at?: string
+          description?: string | null
+          discount_type?: string | null
+          discount_value?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          offer_type?: string
+          terms?: string | null
+          title?: string
+          updated_at?: string
+          views?: number
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code: string
+          referred_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_by?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

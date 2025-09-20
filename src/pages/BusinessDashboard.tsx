@@ -74,14 +74,14 @@ export default function BusinessDashboard() {
       });
     } else {
       try {
-        const { data: businessDeals } = await supabase
+        const { data: businessDeals } = await (supabase as any)
           .from('deals')
           .select('*')
           .eq('business_id', user.businessProfile.id)
           .order('created_at', { ascending: false });
 
         if (businessDeals) {
-          setDeals(businessDeals);
+          setDeals(businessDeals as Deal[]);
           
           // Calculate stats
           const totalViews = businessDeals.reduce((sum, deal) => sum + deal.views, 0);
@@ -111,7 +111,7 @@ export default function BusinessDashboard() {
   const toggleDealStatus = async (dealId: string, currentStatus: boolean) => {
     try {
       if (!USE_MOCK_DEALS) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('deals')
           .update({ is_active: !currentStatus })
           .eq('id', dealId);

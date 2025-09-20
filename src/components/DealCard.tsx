@@ -34,12 +34,12 @@ export function DealCard({ deal, layout = 'grid', isSponsored = false }: DealCar
   const updateViewCount = async () => {
     try {
       if (isSponsoredOffer(deal)) {
-        await supabase
+        await (supabase as any)
           .from('sponsored_offers')
           .update({ views: (deal.views || 0) + 1 })
           .eq('id', deal.id);
       } else {
-        await supabase
+        await (supabase as any)
           .from('deals')
           .update({ views: (deal.views || 0) + 1 })
           .eq('id', deal.id);
@@ -52,7 +52,7 @@ export function DealCard({ deal, layout = 'grid', isSponsored = false }: DealCar
   const updatePrintCount = async () => {
     try {
       if (!isSponsoredOffer(deal)) {
-        await supabase
+        await (supabase as any)
           .from('deals')
           .update({ prints: (deal.prints || 0) + 1 })
           .eq('id', deal.id);

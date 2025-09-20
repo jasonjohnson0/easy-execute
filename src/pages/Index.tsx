@@ -32,7 +32,7 @@ const Index = () => {
       } else {
         try {
           // Fetch real deals from Supabase
-          const { data: dealsData } = await supabase
+          const { data: dealsData } = await (supabase as any)
             .from('deals')
             .select(`
               *,
@@ -44,7 +44,7 @@ const Index = () => {
             .eq('is_active', true)
             .order('created_at', { ascending: false });
 
-          const { data: sponsoredData } = await supabase
+          const { data: sponsoredData } = await (supabase as any)
             .from('sponsored_offers')
             .select(`
               *,
@@ -55,8 +55,8 @@ const Index = () => {
             .eq('is_active', true)
             .order('created_at', { ascending: false });
 
-          setDeals(dealsData || []);
-          setSponsoredOffers(sponsoredData || []);
+          setDeals((dealsData || []) as Deal[]);
+          setSponsoredOffers((sponsoredData || []) as SponsoredOffer[]);
         } catch (error) {
           console.error('Error fetching deals:', error);
           // Fallback to mock data on error

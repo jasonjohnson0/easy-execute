@@ -18,18 +18,18 @@ export function useAuth() {
   const fetchUserProfile = async (authUser: User) => {
     try {
       // Check if user is a business owner
-      const { data: business } = await supabase
+      const { data: business } = await (supabase as any)
         .from('businesses')
         .select('*')
         .eq('id', authUser.id)
-        .single();
+        .maybeSingle();
 
       // Check user profile for referral code
-      const { data: profile } = await supabase
+      const { data: profile } = await (supabase as any)
         .from('user_profiles')
         .select('*')
         .eq('id', authUser.id)
-        .single();
+        .maybeSingle();
 
       const userWithProfiles: AuthUser = {
         ...authUser,
@@ -90,7 +90,7 @@ export function useAuth() {
 
     if (!error && data.user && userType === 'hunter') {
       // Create user profile for deal hunters
-      await supabase.from('user_profiles').insert({
+      await (supabase as any).from('user_profiles').insert({
         id: data.user.id,
       });
     }

@@ -67,7 +67,7 @@ export function AuthModal({
 
         // If business signup, create business profile
         if (userType === 'business' && data.user) {
-          const { error: profileError } = await supabase
+          const { error: profileError } = await (supabase as any)
             .from('businesses')
             .insert({
               id: data.user.id,
