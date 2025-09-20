@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { 
   Search, 
   User, 
@@ -9,12 +10,15 @@ import {
   Store, 
   Share2,
   Menu,
-  X
+  X,
+  Plus,
+  ChevronDown
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from './AuthModal';
 import { ShareModal } from './ShareModal';
 import { CategoryFilter } from './CategoryFilter';
+import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   searchQuery: string;
@@ -32,6 +36,7 @@ export function Header({
   categories 
 }: HeaderProps) {
   const { user, loading, signOut } = useAuth();
+  const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
@@ -75,10 +80,31 @@ export function Header({
             ) : user ? (
               <div className="flex items-center space-x-2">
                 {user.businessProfile && (
-                  <Badge variant="secondary" className="gap-1">
-                    <Store className="w-3 h-3" />
-                    Business
-                  </Badge>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="pulse-business gap-1 px-2 py-1 h-auto">
+                        <Store className="w-3 h-3" />
+                        Business
+                        <ChevronDown className="w-3 h-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem 
+                        onClick={() => navigate('/dashboard')}
+                        className="gap-2"
+                      >
+                        <Store className="w-4 h-4" />
+                        Dashboard
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => navigate('/create-deal')}
+                        className="gap-2 pulse-business"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add New Offer
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
                 <Button
                   variant="ghost"
@@ -150,10 +176,34 @@ export function Header({
               {user ? (
                 <div className="space-y-2">
                   {user.businessProfile && (
-                    <Badge variant="secondary" className="gap-1">
-                      <Store className="w-3 h-3" />
-                      Business Account
-                    </Badge>
+                    <div className="space-y-2">
+                      <div className="pulse-business rounded px-2 py-1 text-xs font-medium flex items-center gap-1">
+                        <Store className="w-3 h-3" />
+                        Business Account
+                      </div>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-2"
+                        onClick={() => {
+                          navigate('/dashboard');
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        <Store className="w-4 h-4" />
+                        Dashboard
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-2 pulse-business"
+                        onClick={() => {
+                          navigate('/create-deal');
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add New Offer
+                      </Button>
+                    </div>
                   )}
                   <Button
                     variant="ghost"

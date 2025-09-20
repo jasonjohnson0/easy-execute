@@ -205,4 +205,20 @@
     background: var(--gradient-secondary);
     @apply text-secondary-foreground;
   }
+
+  /* Pulsing Business Badge Animation */
+  .pulse-business {
+    animation: pulse-business 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-business {
+    0%, 100% {
+      background-color: hsl(var(--secondary));
+      color: hsl(var(--secondary-foreground));
+    }
+    50% {
+      background-color: hsl(210 15% 20%);
+      color: hsl(0 0% 100%);
+    }
+  }
 }
