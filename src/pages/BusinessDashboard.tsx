@@ -24,7 +24,7 @@ import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 
 export default function BusinessDashboard() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, profileLoading } = useAuth();
   const navigate = useNavigate();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,30 +37,29 @@ export default function BusinessDashboard() {
 
   // Check if business profile is complete
   const isBusinessProfileComplete = (profile: any) => {
-    const isComplete = profile && 
+    return profile && 
            profile.name && 
            profile.description && 
            profile.category && 
            profile.address;
-    console.log('🔍 Profile completion check:', { profile, isComplete });
-    return isComplete;
   };
 
   useEffect(() => {
-    if (!authLoading && (!user || !user.businessProfile)) {
-      toast({
-        title: "Access Denied",
-        description: "You need to be signed in as a business owner to access this page.",
-        variant: "destructive"
-      });
-      navigate('/');
-      return;
-    }
+    // Wait for both auth and profile loading to complete
+    if (!authLoading && !profileLoading) {
+      if (!user || !user.businessProfile) {
+        toast({
+          title: "Access Denied",
+          description: "You need to be signed in as a business owner to access this page.",
+          variant: "destructive"
+        });
+        navigate('/');
+        return;
+      }
 
-    if (user?.businessProfile) {
       fetchBusinessDeals();
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, profileLoading, navigate]);
 
   const fetchBusinessDeals = async () => {
     if (!user?.businessProfile) return;
@@ -150,7 +149,7 @@ export default function BusinessDashboard() {
     }
   };
 
-  if (authLoading || loading) {
+  if (authLoading || profileLoading || loading) {
     return (
       <div className="min-h-screen bg-background p-4">
         <div className="container max-w-7xl">

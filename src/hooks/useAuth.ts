@@ -14,8 +14,10 @@ interface AuthUser extends User {
 export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const fetchUserProfile = async (authUser: User) => {
+    setProfileLoading(true);
     try {
       // Check if this is a new user that needs profile creation
       const userMetadata = authUser.user_metadata;
@@ -90,6 +92,8 @@ export function useAuth() {
     } catch (error) {
       console.error('Error fetching user profile:', error);
       setUser(authUser);
+    } finally {
+      setProfileLoading(false);
     }
   };
 
@@ -119,6 +123,7 @@ export function useAuth() {
           }, 0);
         } else {
           setUser(null);
+          setProfileLoading(false);
         }
         setLoading(false);
       }
@@ -201,6 +206,7 @@ export function useAuth() {
   return {
     user,
     loading,
+    profileLoading,
     signIn,
     signUp,
     signOut,

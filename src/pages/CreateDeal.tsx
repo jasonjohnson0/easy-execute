@@ -27,7 +27,7 @@ import { DealCard } from '@/components/DealCard';
 import type { Deal } from '@/types/database';
 
 export default function CreateDeal() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, profileLoading } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -43,15 +43,18 @@ export default function CreateDeal() {
   });
 
   useEffect(() => {
-    if (!authLoading && (!user || !user.businessProfile)) {
-      toast({
-        title: "Access Denied",
-        description: "You need to be signed in as a business owner to create deals.",
-        variant: "destructive"
-      });
-      navigate('/');
+    // Wait for both auth and profile loading to complete
+    if (!authLoading && !profileLoading) {
+      if (!user || !user.businessProfile) {
+        toast({
+          title: "Access Denied",
+          description: "You need to be signed in as a business owner to create deals.",
+          variant: "destructive"
+        });
+        navigate('/');
+      }
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, profileLoading, navigate]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -166,7 +169,7 @@ export default function CreateDeal() {
     }
   };
 
-  if (authLoading) {
+  if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin" />
