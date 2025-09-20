@@ -90,14 +90,20 @@ export function Header({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem 
-                        onClick={() => navigate('/dashboard')}
+                        onClick={() => {
+                          console.log('🎯 Navigating to dashboard...');
+                          navigate('/dashboard');
+                        }}
                         className="gap-2"
                       >
                         <Store className="w-4 h-4" />
                         Dashboard
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={() => navigate('/create-deal')}
+                        onClick={() => {
+                          console.log('🎯 Navigating to create-deal...');
+                          navigate('/create-deal');
+                        }}
                         className="gap-2 pulse-business"
                       >
                         <Plus className="w-4 h-4" />
