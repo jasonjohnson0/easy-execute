@@ -13,8 +13,8 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { format } from 'date-fns';
-import type { Deal, SponsoredOffer } from '@/lib/supabase';
-import { supabase } from '@/lib/supabase';
+import type { Deal, SponsoredOffer } from '@/types/database';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
 interface DealCardProps {

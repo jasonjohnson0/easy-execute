@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
-import type { Business } from '../lib/supabase';
+import type { Business } from '@/types/database';
 
 interface AuthUser extends User {
   businessProfile?: Business;

@@ -1,4 +1,4 @@
-import type { Deal, SponsoredOffer } from '../lib/supabase';
+import type { Deal, SponsoredOffer } from '@/types/database';
 
 export const USE_MOCK_DEALS = true; // Toggle for development
 

@@ -17,9 +17,9 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { mockDeals, USE_MOCK_DEALS } from '@/data/mockData';
-import type { Deal } from '@/lib/supabase';
+import type { Deal } from '@/types/database';
 import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 

@@ -19,12 +19,12 @@ import {
   Loader2
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { USE_MOCK_DEALS } from '@/data/mockData';
 import { toast } from '@/hooks/use-toast';
 import { format, addDays } from 'date-fns';
 import { DealCard } from '@/components/DealCard';
-import type { Deal } from '@/lib/supabase';
+import type { Deal } from '@/types/database';
 
 export default function CreateDeal() {
   const { user, loading: authLoading } = useAuth();

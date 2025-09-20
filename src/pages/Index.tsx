@@ -8,8 +8,8 @@ import { Header } from '@/components/Header';
 import { DealCard } from '@/components/DealCard';
 import { useAuth } from '@/hooks/useAuth';
 import { mockDeals, mockSponsoredOffers, DEAL_CATEGORIES, USE_MOCK_DEALS } from '@/data/mockData';
-import { supabase } from '@/lib/supabase';
-import type { Deal, SponsoredOffer } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
+import type { Deal, SponsoredOffer } from '@/types/database';
 import heroImage from '@/assets/hero-image.jpg';
 
 const Index = () => {
