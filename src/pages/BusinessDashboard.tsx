@@ -35,6 +35,15 @@ export default function BusinessDashboard() {
     totalPrints: 0
   });
 
+  // Check if business profile is complete
+  const isBusinessProfileComplete = (profile: any) => {
+    return profile && 
+           profile.name && 
+           profile.description && 
+           profile.category && 
+           profile.address;
+  };
+
   useEffect(() => {
     if (!authLoading && (!user || !user.businessProfile)) {
       toast({
@@ -159,6 +168,79 @@ export default function BusinessDashboard() {
 
   if (!user?.businessProfile) {
     return null; // Will redirect in useEffect
+  }
+
+  // Show setup overlay if business profile is incomplete
+  if (!isBusinessProfileComplete(user.businessProfile)) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="text-center max-w-2xl mx-auto">
+          <div className="relative mb-8">
+            <div className="w-32 h-32 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-6 animate-pulse">
+              <Plus className="w-16 h-16 text-primary" />
+            </div>
+            <div className="absolute inset-0 w-32 h-32 mx-auto rounded-full border-4 border-primary/20 animate-ping" />
+          </div>
+          
+          <h1 className="text-4xl font-bold mb-4">Set Up Your Business Profile</h1>
+          <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+            Before you can create deals and start attracting customers, let's complete your business profile.
+            This helps customers find and trust your business.
+          </p>
+          
+          <div className="bg-card border rounded-lg p-6 mb-8 text-left">
+            <h3 className="text-lg font-semibold mb-4">What we need:</h3>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${user.businessProfile.name ? 'bg-green-500' : 'bg-muted'}`}>
+                  {user.businessProfile.name ? '✓' : '○'}
+                </div>
+                <span className={user.businessProfile.name ? 'text-foreground' : 'text-muted-foreground'}>
+                  Business Name {user.businessProfile.name ? '✓' : ''}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${user.businessProfile.description ? 'bg-green-500' : 'bg-muted'}`}>
+                  {user.businessProfile.description ? '✓' : '○'}
+                </div>
+                <span className={user.businessProfile.description ? 'text-foreground' : 'text-muted-foreground'}>
+                  Business Description {user.businessProfile.description ? '✓' : ''}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${user.businessProfile.category ? 'bg-green-500' : 'bg-muted'}`}>
+                  {user.businessProfile.category ? '✓' : '○'}
+                </div>
+                <span className={user.businessProfile.category ? 'text-foreground' : 'text-muted-foreground'}>
+                  Business Category {user.businessProfile.category ? '✓' : ''}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${user.businessProfile.address ? 'bg-green-500' : 'bg-muted'}`}>
+                  {user.businessProfile.address ? '✓' : '○'}
+                </div>
+                <span className={user.businessProfile.address ? 'text-foreground' : 'text-muted-foreground'}>
+                  Business Address {user.businessProfile.address ? '✓' : ''}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <Button
+            size="lg"
+            className="text-lg px-8 py-6 gap-3"
+            onClick={() => navigate('/business-setup')}
+          >
+            <Plus className="w-5 h-5" />
+            Complete Your Business Profile
+          </Button>
+          
+          <p className="text-sm text-muted-foreground mt-4">
+            This will only take a few minutes and you can always update it later.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
