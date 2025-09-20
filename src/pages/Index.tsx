@@ -23,6 +23,8 @@ const Index = () => {
   const [layout, setLayout] = useState<'grid' | 'coupon'>('grid');
   const [showRegularDeals, setShowRegularDeals] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
+  const [authUserType, setAuthUserType] = useState<'hunter' | 'business'>('hunter');
 
   useEffect(() => {
     const fetchDeals = async () => {
@@ -285,10 +287,10 @@ const Index = () => {
       <AuthModal
         open={showAuthModal}
         onOpenChange={setShowAuthModal}
-        mode="signup"
-        userType="hunter"
-        onModeChange={() => {}}
-        onUserTypeChange={() => {}}
+        mode={authMode}
+        userType={authUserType}
+        onModeChange={setAuthMode}
+        onUserTypeChange={setAuthUserType}
       />
     </div>
   );
