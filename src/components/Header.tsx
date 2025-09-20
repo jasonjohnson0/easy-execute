@@ -14,6 +14,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from './AuthModal';
 import { ShareModal } from './ShareModal';
+import { CategoryFilter } from './CategoryFilter';
 
 interface HeaderProps {
   searchQuery: string;
@@ -206,23 +207,11 @@ export function Header({
         )}
 
         {/* Category Filter */}
-        <div className="border-t bg-muted/30">
-          <div className="container px-4 py-3">
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {categories.map((category) => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => onCategoryChange(category)}
-                  className="whitespace-nowrap flex-shrink-0"
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <CategoryFilter 
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategoryChange={onCategoryChange}
+        />
       </header>
 
       {/* Modals */}

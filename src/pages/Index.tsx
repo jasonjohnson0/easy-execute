@@ -20,6 +20,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [layout, setLayout] = useState<'grid' | 'coupon'>('grid');
+  const [showRegularDeals, setShowRegularDeals] = useState(false);
 
   useEffect(() => {
     const fetchDeals = async () => {
@@ -140,15 +141,18 @@ const Index = () => {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-4">
+                  <Button 
+                    variant="hero" 
+                    size="lg" 
+                    className="text-lg px-8"
+                    onClick={() => setShowRegularDeals(true)}
+                  >
+                    Start Discovering Deals
+                  </Button>
                   {!user && (
-                    <>
-                      <Button variant="hero" size="lg" className="text-lg px-8">
-                        Start Discovering Deals
-                      </Button>
-                      <Button variant="outline" size="lg" className="text-lg px-8">
-                        Join as Business
-                      </Button>
-                    </>
+                    <Button variant="outline" size="lg" className="text-lg px-8">
+                      Join as Business
+                    </Button>
                   )}
                 </div>
 
@@ -161,10 +165,6 @@ const Index = () => {
                     <div className="font-semibold text-2xl text-foreground">500+</div>
                     <div>Local Businesses</div>
                   </div>
-                  <div>
-                    <div className="font-semibold text-2xl text-foreground">$10K+</div>
-                    <div>Total Savings</div>
-                  </div>
                 </div>
               </div>
 
@@ -174,10 +174,6 @@ const Index = () => {
                   alt="Local businesses and community shopping"
                   className="rounded-2xl shadow-2xl w-full max-w-lg ml-auto"
                 />
-                <div className="absolute -bottom-4 -left-4 bg-secondary text-secondary-foreground p-4 rounded-lg shadow-lg">
-                  <div className="font-bold text-lg">20% OFF</div>
-                  <div className="text-sm">Your first deal!</div>
-                </div>
               </div>
             </div>
           </div>
@@ -242,7 +238,7 @@ const Index = () => {
           )}
 
           {/* Regular Deals */}
-          {filteredDeals.length > 0 ? (
+          {showRegularDeals && filteredDeals.length > 0 ? (
             <div className={`grid gap-6 ${
               layout === 'grid' 
                 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
@@ -256,7 +252,7 @@ const Index = () => {
                 />
               ))}
             </div>
-          ) : (
+          ) : showRegularDeals && filteredDeals.length === 0 ? (
             <div className="text-center py-12">
               <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No deals found</h3>
@@ -273,7 +269,7 @@ const Index = () => {
                 Clear Filters
               </Button>
             </div>
-          )}
+          ) : null}
         </div>
       </section>
     </div>
