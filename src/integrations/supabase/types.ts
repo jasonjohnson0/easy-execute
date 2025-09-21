@@ -463,18 +463,15 @@ export type Database = {
         Args: { end_date?: string; start_date?: string }
         Returns: Json
       }
-      get_safe_business_data: {
+      get_safe_businesses: {
         Args: Record<PropertyKey, never>
         Returns: {
           category: string
           created_at: string
           description: string
           id: string
-          latitude: number
           logo_url: string
-          longitude: number
           name: string
-          timezone: string
         }[]
       }
       get_user_role: {

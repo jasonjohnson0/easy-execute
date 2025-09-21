@@ -30,12 +30,11 @@ export interface FullBusinessData extends SafeBusinessData {
 }
 
 /**
- * Fetch safe business data for public consumption
+ * Fetch safe business data for public consumption using secure function
  */
 export const fetchPublicBusinessData = async (): Promise<SafeBusinessData[]> => {
   const { data, error } = await supabase
-    .from('businesses')
-    .select('id, name, category, description, logo_url, created_at');
+    .rpc('get_safe_businesses');
 
   if (error) {
     console.error('Error fetching public business data:', error);
