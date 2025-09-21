@@ -1,6 +1,6 @@
 import type { Deal, SponsoredOffer } from '@/types/database';
 
-export const USE_MOCK_DEALS = true; // Toggle for development
+export const USE_MOCK_DEALS = false; // Toggle for development
 
 export const DEAL_CATEGORIES = [
   'All Categories',
