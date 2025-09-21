@@ -7,6 +7,7 @@ import { Grid3X3, List, Filter, TrendingUp } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { DealCard } from '@/components/DealCard';
 import { AuthModal } from '@/components/AuthModal';
+import { WelcomeModal } from '@/components/WelcomeModal';
 import { useAuth } from '@/hooks/useAuth';
 import { mockDeals, mockSponsoredOffers, DEAL_CATEGORIES, USE_MOCK_DEALS } from '@/data/mockData';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,7 +15,7 @@ import type { Deal, SponsoredOffer } from '@/types/database';
 import heroImage from '@/assets/hero-image.jpg';
 
 const Index = () => {
-  const { user } = useAuth();
+  const { user, showWelcomeModal, setShowWelcomeModal } = useAuth();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [sponsoredOffers, setSponsoredOffers] = useState<SponsoredOffer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -291,6 +292,13 @@ const Index = () => {
         userType={authUserType}
         onModeChange={setAuthMode}
         onUserTypeChange={setAuthUserType}
+      />
+
+      {/* Welcome Modal for new business users */}
+      <WelcomeModal
+        open={showWelcomeModal}
+        onOpenChange={setShowWelcomeModal}
+        businessName={user?.businessProfile?.name}
       />
     </div>
   );

@@ -32,6 +32,7 @@ export default function CreateDeal() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const fromSetup = searchParams.get('from') === 'setup';
+  const fromWelcome = searchParams.get('from') === 'welcome';
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -49,8 +50,8 @@ export default function CreateDeal() {
     // Wait for both auth and profile loading to complete
     if (!authLoading && !profileLoading) {
       if (!user || !user.businessProfile) {
-        // If coming from setup, give it a bit more time for the profile to load
-        if (fromSetup) {
+        // If coming from setup or welcome, give it a bit more time for the profile to load
+        if (fromSetup || fromWelcome) {
           const timer = setTimeout(() => {
             if (!user || !user.businessProfile) {
               toast({
@@ -72,7 +73,7 @@ export default function CreateDeal() {
         }
       }
     }
-  }, [user, authLoading, profileLoading, navigate, fromSetup]);
+  }, [user, authLoading, profileLoading, navigate, fromSetup, fromWelcome]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -216,10 +217,10 @@ export default function CreateDeal() {
           <Separator orientation="vertical" className="h-6" />
           <div>
             <h1 className="text-3xl font-bold">
-              {fromSetup ? 'Create Your First Deal' : 'Create New Deal'}
+              {fromSetup || fromWelcome ? 'Create Your First Deal' : 'Create New Deal'}
             </h1>
             <p className="text-muted-foreground">
-              {fromSetup 
+              {fromSetup || fromWelcome
                 ? 'Get started with your first customer offer' 
                 : 'Create an attractive deal for your customers'
               }
@@ -227,7 +228,7 @@ export default function CreateDeal() {
           </div>
         </div>
 
-        {fromSetup && (
+        {(fromSetup || fromWelcome) && (
           <div className="mb-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
             <p className="text-sm text-muted-foreground mb-3">
               Ready to attract your first customers? Create a deal now, or skip this step and set up deals later.

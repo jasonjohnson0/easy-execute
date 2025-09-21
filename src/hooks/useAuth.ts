@@ -15,8 +15,10 @@ export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [isNewBusinessUser, setIsNewBusinessUser] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
-  const fetchUserProfile = async (authUser: User) => {
+  const fetchUserProfile = async (authUser: User, isVerificationEvent = false) => {
     setProfileLoading(true);
     try {
       // Check if this is a new user that needs profile creation
@@ -53,6 +55,12 @@ export function useAuth() {
             userProfile: profile || undefined
           };
           setUser(userWithProfiles);
+          
+          // If this is from email verification and it's a new business user, show welcome modal
+          if (isVerificationEvent && userMetadata?.user_type === 'business') {
+            setIsNewBusinessUser(true);
+            setTimeout(() => setShowWelcomeModal(true), 1000);
+          }
           return;
         } catch (error) {
           console.error('Failed to create business profile on login:', error);
@@ -89,6 +97,12 @@ export function useAuth() {
       };
 
       setUser(userWithProfiles);
+
+      // Check if this is a returning business user after email verification
+      if (isVerificationEvent && userMetadata?.user_type === 'business' && business) {
+        setIsNewBusinessUser(true);
+        setTimeout(() => setShowWelcomeModal(true), 1000);
+      }
     } catch (error) {
       console.error('Error fetching user profile:', error);
       setUser(authUser);
@@ -117,13 +131,18 @@ export function useAuth() {
       (event, session) => {
         // Only synchronous state updates here
         if (session?.user) {
+          // Check if this is an email verification event
+          const isVerificationEvent = event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN';
+          
           // Defer Supabase calls with setTimeout to prevent deadlocks
           setTimeout(() => {
-            fetchUserProfile(session.user);
+            fetchUserProfile(session.user, isVerificationEvent);
           }, 0);
         } else {
           setUser(null);
           setProfileLoading(false);
+          setShowWelcomeModal(false);
+          setIsNewBusinessUser(false);
         }
         setLoading(false);
       }
@@ -207,6 +226,9 @@ export function useAuth() {
     user,
     loading,
     profileLoading,
+    isNewBusinessUser,
+    showWelcomeModal,
+    setShowWelcomeModal,
     signIn,
     signUp,
     signOut,
