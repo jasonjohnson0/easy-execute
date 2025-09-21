@@ -22,6 +22,7 @@ interface HeaderProps {
 }
 
 export function Header({ categories }: HeaderProps) {
+  // Force cache refresh - removed search functionality
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
