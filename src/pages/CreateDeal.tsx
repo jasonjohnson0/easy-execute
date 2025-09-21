@@ -25,10 +25,13 @@ import { toast } from '@/hooks/use-toast';
 import { format, addDays } from 'date-fns';
 import { DealCard } from '@/components/DealCard';
 import type { Deal } from '@/types/database';
+import { useSearchParams } from 'react-router-dom';
 
 export default function CreateDeal() {
   const { user, loading: authLoading, profileLoading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const fromSetup = searchParams.get('from') === 'setup';
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -46,15 +49,30 @@ export default function CreateDeal() {
     // Wait for both auth and profile loading to complete
     if (!authLoading && !profileLoading) {
       if (!user || !user.businessProfile) {
-        toast({
-          title: "Access Denied",
-          description: "You need to be signed in as a business owner to create deals.",
-          variant: "destructive"
-        });
-        navigate('/');
+        // If coming from setup, give it a bit more time for the profile to load
+        if (fromSetup) {
+          const timer = setTimeout(() => {
+            if (!user || !user.businessProfile) {
+              toast({
+                title: "Access Denied",
+                description: "You need to be signed in as a business owner to create deals.",
+                variant: "destructive"
+              });
+              navigate('/');
+            }
+          }, 1000);
+          return () => clearTimeout(timer);
+        } else {
+          toast({
+            title: "Access Denied",
+            description: "You need to be signed in as a business owner to create deals.",
+            variant: "destructive"
+          });
+          navigate('/');
+        }
       }
     }
-  }, [user, authLoading, profileLoading, navigate]);
+  }, [user, authLoading, profileLoading, navigate, fromSetup]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -197,12 +215,32 @@ export default function CreateDeal() {
           </Button>
           <Separator orientation="vertical" className="h-6" />
           <div>
-            <h1 className="text-3xl font-bold">Create New Deal</h1>
+            <h1 className="text-3xl font-bold">
+              {fromSetup ? 'Create Your First Deal' : 'Create New Deal'}
+            </h1>
             <p className="text-muted-foreground">
-              Create an attractive deal for your customers
+              {fromSetup 
+                ? 'Get started with your first customer offer' 
+                : 'Create an attractive deal for your customers'
+              }
             </p>
           </div>
         </div>
+
+        {fromSetup && (
+          <div className="mb-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+            <p className="text-sm text-muted-foreground mb-3">
+              Ready to attract your first customers? Create a deal now, or skip this step and set up deals later.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/dashboard')}
+              className="gap-2"
+            >
+              I'm not ready for more business, take me to the dashboard
+            </Button>
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Form */}

@@ -78,7 +78,7 @@ export default function BusinessSetup() {
         description: "Your business profile has been completed successfully.",
       });
 
-      navigate('/dashboard');
+      navigate('/create-deal?from=setup');
     } catch (error) {
       console.error('Error updating business profile:', error);
       toast({
