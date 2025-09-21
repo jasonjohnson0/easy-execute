@@ -10,9 +10,11 @@ import {
   X,
   Plus,
   ChevronDown,
-  Heart
+  Heart,
+  Shield
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useFavoritesQuery } from "@/hooks/useFavoritesQuery";
 import { AuthModal } from './AuthModal';
 import { ShareModal } from './ShareModal';
@@ -26,6 +28,7 @@ interface HeaderProps {
 export function Header({ categories }: HeaderProps) {
   // Force cache refresh - removed search functionality
   const { user, loading, signOut } = useAuth();
+  const { isAdmin } = useAdminAuth();
   const { favorites } = useFavoritesQuery();
   const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -114,6 +117,17 @@ export function Header({ categories }: HeaderProps) {
                   <Share2 className="w-4 h-4" />
                   Share Deals!
                 </Button>
+                {isAdmin && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/admin')}
+                    className="gap-2 text-orange-600 hover:text-orange-700"
+                  >
+                    <Shield className="w-4 h-4" />
+                    Admin
+                  </Button>
+                )}
                 <ProfileDropdown />
               </div>
             ) : (
@@ -208,6 +222,19 @@ export function Header({ categories }: HeaderProps) {
                     <Share2 className="w-4 h-4" />
                     Share Deals!
                   </Button>
+                  {isAdmin && (
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start gap-2 text-orange-600 hover:text-orange-700"
+                      onClick={() => {
+                        navigate('/admin');
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      <Shield className="w-4 h-4" />
+                      Admin Dashboard
+                    </Button>
+                  )}
                   <div className="w-full" onClick={() => setMobileMenuOpen(false)}>
                     <ProfileDropdown />
                   </div>
