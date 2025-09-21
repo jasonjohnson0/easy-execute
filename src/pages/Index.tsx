@@ -76,6 +76,8 @@ const Index = () => {
             .from('businesses')
             .select('id', { count: 'exact', head: true });
 
+          console.log('🔍 Business count query response:', { businessCountData, businessCountError });
+
           if (dealsError) {
             console.error('❌ Error fetching deals:', dealsError);
             throw dealsError;
@@ -93,7 +95,7 @@ const Index = () => {
 
           const deals = (dealsData || []) as Deal[];
           const sponsored = (sponsoredData || []) as SponsoredOffer[];
-          const businessCountTotal = businessCountData || 0;
+          const businessCountTotal = (businessCountData ?? 0);
           
           console.log('✅ Successfully fetched data:', { 
             dealsCount: deals.length, 
