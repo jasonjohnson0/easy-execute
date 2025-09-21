@@ -10,6 +10,7 @@ import BusinessSetup from "./pages/BusinessSetup";
 import CreateDeal from "./pages/CreateDeal";
 import Favorites from "./pages/Favorites";
 import ProductionDashboard from "./pages/ProductionDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/create-deal" element={<CreateDeal />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/production" element={<ProductionDashboard />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

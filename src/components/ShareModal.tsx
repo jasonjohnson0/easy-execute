@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Copy, QrCode, Link2, Check, Share2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useAnalyticsTracking } from '@/hooks/useAnalyticsTracking';
 import QRCode from 'qrcode';
 
 interface ShareModalProps {
@@ -18,6 +19,7 @@ export function ShareModal({ open, onOpenChange, referralCode }: ShareModalProps
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState('link');
+  const { trackShareClick } = useAnalyticsTracking();
 
   const referralLink = `${window.location.origin}?ref=${referralCode}`;
 
@@ -41,6 +43,10 @@ export function ShareModal({ open, onOpenChange, referralCode }: ShareModalProps
     try {
       await navigator.clipboard.writeText(referralLink);
       setCopied(true);
+      
+      // Track copy action as a share click
+      await trackShareClick('referral', 'referral', 'copy');
+      
       toast({
         title: "Link copied!",
         description: "Referral link has been copied to your clipboard.",
@@ -56,7 +62,7 @@ export function ShareModal({ open, onOpenChange, referralCode }: ShareModalProps
     }
   };
 
-  const shareToSocial = (platform: 'twitter' | 'facebook' | 'whatsapp') => {
+  const shareToSocial = async (platform: 'twitter' | 'facebook' | 'whatsapp') => {
     const message = "Check out these amazing local deals on LocalDeals!";
     const encodedMessage = encodeURIComponent(message);
     const encodedUrl = encodeURIComponent(referralLink);
@@ -74,6 +80,9 @@ export function ShareModal({ open, onOpenChange, referralCode }: ShareModalProps
         shareUrl = `https://wa.me/?text=${encodedMessage}%20${encodedUrl}`;
         break;
     }
+
+    // Track social share click
+    await trackShareClick('referral', 'referral', platform);
 
     window.open(shareUrl, '_blank', 'width=600,height=400');
   };

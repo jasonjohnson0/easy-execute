@@ -195,6 +195,91 @@ export type Database = {
           },
         ]
       }
+      qr_scans: {
+        Row: {
+          business_id: string
+          deal_id: string
+          id: string
+          ip_address: unknown | null
+          location: Json | null
+          scanned_at: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          business_id: string
+          deal_id: string
+          id?: string
+          ip_address?: unknown | null
+          location?: Json | null
+          scanned_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          business_id?: string
+          deal_id?: string
+          id?: string
+          ip_address?: unknown | null
+          location?: Json | null
+          scanned_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_scans_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      share_clicks: {
+        Row: {
+          business_id: string
+          clicked_at: string
+          deal_id: string
+          id: string
+          ip_address: unknown | null
+          platform: string | null
+          referrer: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          business_id: string
+          clicked_at?: string
+          deal_id: string
+          id?: string
+          ip_address?: unknown | null
+          platform?: string | null
+          referrer?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          business_id?: string
+          clicked_at?: string
+          deal_id?: string
+          id?: string
+          ip_address?: unknown | null
+          platform?: string | null
+          referrer?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "share_clicks_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sponsored_offers: {
         Row: {
           banner_image_url: string | null
@@ -310,6 +395,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -318,6 +424,10 @@ export type Database = {
       calculate_distance: {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number
+      }
+      get_admin_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       get_business_count: {
         Args: Record<PropertyKey, never>
@@ -329,13 +439,28 @@ export type Database = {
         }
         Returns: Json
       }
+      get_qr_scan_analytics: {
+        Args: { end_date?: string; start_date?: string }
+        Returns: Json
+      }
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_business_open_now: {
         Args: { business_uuid: string }
         Returns: boolean
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -462,6 +587,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
