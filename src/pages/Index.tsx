@@ -22,23 +22,32 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [layout, setLayout] = useState<'grid' | 'coupon'>('grid');
-  const [showRegularDeals, setShowRegularDeals] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
   const [authUserType, setAuthUserType] = useState<'hunter' | 'business'>('hunter');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDeals = async () => {
+      console.log('🔄 Fetching deals...', { 
+        authenticated: !!user, 
+        userId: user?.id, 
+        mockMode: USE_MOCK_DEALS 
+      });
+      
       setLoading(true);
+      setError(null);
       
       if (USE_MOCK_DEALS) {
-        // Use mock data for development
+        console.log('📊 Using mock data for development');
         setDeals(mockDeals);
         setSponsoredOffers(mockSponsoredOffers);
       } else {
         try {
+          console.log('🌐 Fetching real deals from Supabase...');
+          
           // Fetch real deals from Supabase
-          const { data: dealsData } = await (supabase as any)
+          const { data: dealsData, error: dealsError } = await (supabase as any)
             .from('deals')
             .select(`
               *,
@@ -50,7 +59,7 @@ const Index = () => {
             .eq('is_active', true)
             .order('created_at', { ascending: false });
 
-          const { data: sponsoredData } = await (supabase as any)
+          const { data: sponsoredData, error: sponsoredError } = await (supabase as any)
             .from('sponsored_offers')
             .select(`
               *,
@@ -61,13 +70,37 @@ const Index = () => {
             .eq('is_active', true)
             .order('created_at', { ascending: false });
 
-          setDeals((dealsData || []) as Deal[]);
-          setSponsoredOffers((sponsoredData || []) as SponsoredOffer[]);
+          if (dealsError) {
+            console.error('❌ Error fetching deals:', dealsError);
+            throw dealsError;
+          }
+          
+          if (sponsoredError) {
+            console.error('❌ Error fetching sponsored offers:', sponsoredError);
+            throw sponsoredError;
+          }
+
+          const deals = (dealsData || []) as Deal[];
+          const sponsored = (sponsoredData || []) as SponsoredOffer[];
+          
+          console.log('✅ Successfully fetched data:', { 
+            dealsCount: deals.length, 
+            sponsoredCount: sponsored.length,
+            deals: deals.map(d => ({ id: d.id, title: d.title, active: d.is_active })),
+            sponsored: sponsored.map(s => ({ id: s.id, title: s.title, active: s.is_active }))
+          });
+
+          setDeals(deals);
+          setSponsoredOffers(sponsored);
         } catch (error) {
-          console.error('Error fetching deals:', error);
-          // Fallback to mock data on error
-          setDeals(mockDeals);
-          setSponsoredOffers(mockSponsoredOffers);
+          console.error('💥 Error fetching deals:', error);
+          setError('Failed to load deals. Please try refreshing the page.');
+          // Fallback to mock data on error for development
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔄 Falling back to mock data...');
+            setDeals(mockDeals);
+            setSponsoredOffers(mockSponsoredOffers);
+          }
         }
       }
       
@@ -75,7 +108,7 @@ const Index = () => {
     };
 
     fetchDeals();
-  }, []);
+  }, [user]); // Re-fetch when user authentication changes
 
   // Filter deals based on search and category
   const filteredDeals = deals.filter(deal => {
@@ -89,6 +122,15 @@ const Index = () => {
       deal.businesses?.category === selectedCategory;
     
     return matchesSearch && matchesCategory;
+  });
+
+  // Debug filtering results
+  console.log('🔍 Filtering results:', {
+    totalDeals: deals.length,
+    filteredDeals: filteredDeals.length,
+    searchQuery,
+    selectedCategory,
+    user: !!user
   });
 
   if (loading) {
@@ -152,16 +194,26 @@ const Index = () => {
                     className="text-lg px-8"
                     onClick={() => {
                       if (user) {
-                        setShowRegularDeals(true);
+                        // Scroll to deals section for authenticated users
+                        document.querySelector('#deals-section')?.scrollIntoView({ behavior: 'smooth' });
                       } else {
                         setShowAuthModal(true);
                       }
                     }}
                   >
-                    {user ? 'Start Discovering Deals' : 'Subscribe to Discover Deals'}
+                    {user ? 'View Latest Deals' : 'Subscribe to Discover Deals'}
                   </Button>
                   {!user && (
-                    <Button variant="outline" size="lg" className="text-lg px-8">
+                    <Button 
+                      variant="outline" 
+                      size="lg" 
+                      className="text-lg px-8"
+                      onClick={() => {
+                        setAuthMode('signup');
+                        setAuthUserType('business');
+                        setShowAuthModal(true);
+                      }}
+                    >
                       Join as Business
                     </Button>
                   )}
@@ -192,8 +244,23 @@ const Index = () => {
       )}
 
       {/* Deals Section */}
-      <section className="py-8">
+      <section id="deals-section" className="py-8">
         <div className="container px-4">
+          
+          {/* Error State */}
+          {error && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-6">
+              <p className="text-destructive font-medium">⚠️ {error}</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-2"
+                onClick={() => window.location.reload()}
+              >
+                Retry
+              </Button>
+            </div>
+          )}
           {/* Controls */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
