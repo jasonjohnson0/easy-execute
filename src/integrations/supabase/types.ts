@@ -50,6 +50,13 @@ export type Database = {
             referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "business_audit_log_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       business_hours: {
@@ -191,6 +198,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses_public"
             referencedColumns: ["id"]
           },
         ]
@@ -343,6 +357,13 @@ export type Database = {
             referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "sponsored_offers_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_favorites: {
@@ -418,7 +439,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      businesses_public: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          latitude: number | null
+          logo_url: string | null
+          longitude: number | null
+          name: string | null
+          timezone: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          name?: string | null
+          timezone?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          name?: string | null
+          timezone?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_admin_role: {
@@ -452,6 +508,20 @@ export type Database = {
       get_platform_analytics: {
         Args: { end_date?: string; start_date?: string }
         Returns: Json
+      }
+      get_public_business_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          latitude: number | null
+          logo_url: string | null
+          longitude: number | null
+          name: string | null
+          timezone: string | null
+        }[]
       }
       get_public_business_info: {
         Args: {
