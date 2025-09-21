@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/hooks/useAuth';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useAdminMetrics, useQRAnalytics } from '@/hooks/useAdminMetrics';
 import { usePlatformAnalytics } from '@/hooks/usePlatformData';
@@ -13,13 +15,20 @@ import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, 
 import { Users, Building2, Ticket, TrendingUp, Shield, Settings, BarChart3 } from 'lucide-react';
 
 export default function AdminDashboard() {
+  const { user } = useAuth();
   const { isAdmin, loading: authLoading } = useAdminAuth();
   const { data: metrics, isLoading: metricsLoading, error: metricsError } = useAdminMetrics();
   const { data: qrAnalytics } = useQRAnalytics();
   const { data: platformAnalytics } = usePlatformAnalytics();
   const [activeTab, setActiveTab] = useState('overview');
 
-  console.log('AdminDashboard render:', { isAdmin, authLoading });
+  console.log('AdminDashboard render:', { 
+    isAdmin, 
+    authLoading, 
+    hasUser: !!user, 
+    userId: user?.id,
+    userEmail: user?.email 
+  });
 
   // Redirect non-admins
   if (authLoading) {
@@ -29,14 +38,41 @@ export default function AdminDashboard() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Checking admin access...</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            User: {user?.email || 'Not logged in'} | Admin Loading: {authLoading.toString()}
+          </p>
         </div>
       </div>
     );
   }
 
   if (!isAdmin) {
-    console.log('User is not admin, redirecting to home');
-    return <Navigate to="/" replace />;
+    console.log('User is not admin, current state:', { 
+      user: !!user, 
+      userId: user?.id, 
+      isAdmin,
+      authLoading 
+    });
+    
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Shield className="h-16 w-16 text-muted-foreground mx-auto" />
+          <div>
+            <h1 className="text-2xl font-bold">Access Denied</h1>
+            <p className="text-muted-foreground">
+              {user ? 'You do not have admin privileges' : 'Please log in to continue'}
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              User: {user?.email || 'Not logged in'} | Is Admin: {isAdmin.toString()}
+            </p>
+          </div>
+          <Button onClick={() => window.location.href = '/'}>
+            Go Home
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   console.log('Admin dashboard rendering successfully');
