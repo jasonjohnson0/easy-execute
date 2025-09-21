@@ -74,7 +74,7 @@ const Index = () => {
           // Fetch business count
           const { count: businessCountData, error: businessCountError } = await supabase
             .from('businesses')
-            .select('*', { count: 'exact', head: true });
+            .select('id', { count: 'exact', head: true });
 
           if (dealsError) {
             console.error('❌ Error fetching deals:', dealsError);
