@@ -8,6 +8,8 @@ import { DealCard } from '@/components/DealCard';
 import { AuthModal } from '@/components/AuthModal';
 import { WelcomeModal } from '@/components/WelcomeModal';
 import { EnhancedSearch } from '@/components/EnhancedSearch';
+import { RecentlyViewedSection } from '@/components/RecentlyViewedSection';
+import { TrendingSection } from '@/components/TrendingSection';
 import { useAuth } from '@/hooks/useAuth';
 import { useEnhancedSearch } from '@/hooks/useEnhancedSearch';
 import { mockDeals, mockSponsoredOffers, DEAL_CATEGORIES, USE_MOCK_DEALS } from '@/data/mockData';
@@ -298,6 +300,12 @@ const Index = () => {
               </ToggleGroup>
             </div>
           </div>
+
+          {/* Recently Viewed Section */}
+          {!searchStats.hasFilters && <RecentlyViewedSection />}
+
+          {/* Trending Section */}
+          {!searchStats.hasFilters && <TrendingSection deals={deals} />}
 
           {/* Sponsored Offers */}
           {sponsoredOffers.length > 0 && !searchStats.hasFilters && (

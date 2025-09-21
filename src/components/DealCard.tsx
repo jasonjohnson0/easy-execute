@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useAuth } from "@/hooks/useAuth";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 
 interface DealCardProps {
   deal: Deal | (SponsoredOffer & { businesses?: { name: string; category?: string } });
@@ -20,6 +21,7 @@ interface DealCardProps {
 export function DealCard({ deal, layout = 'grid', isSponsored = false }: DealCardProps) {
   const { user } = useAuth();
   const { isFavorited, toggleFavorite } = useFavorites();
+  const { addRecentlyViewed } = useRecentlyViewed();
   const [printing, setPrinting] = useState(false);
 
   const isSponsoredOffer = (deal: Deal | (SponsoredOffer & { businesses?: { name: string } })): deal is SponsoredOffer & { businesses?: { name: string } } => {
@@ -66,6 +68,7 @@ export function DealCard({ deal, layout = 'grid', isSponsored = false }: DealCar
 
   const handleViewDetails = () => {
     updateViewCount();
+    addRecentlyViewed(deal);
     // Could open a modal or navigate to deal details
     toast({
       title: "Deal Details",
