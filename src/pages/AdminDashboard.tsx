@@ -19,8 +19,11 @@ export default function AdminDashboard() {
   const { data: platformAnalytics } = usePlatformAnalytics();
   const [activeTab, setActiveTab] = useState('overview');
 
+  console.log('AdminDashboard render:', { isAdmin, authLoading });
+
   // Redirect non-admins
   if (authLoading) {
+    console.log('Admin dashboard showing loading state');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -32,8 +35,11 @@ export default function AdminDashboard() {
   }
 
   if (!isAdmin) {
+    console.log('User is not admin, redirecting to home');
     return <Navigate to="/" replace />;
   }
+
+  console.log('Admin dashboard rendering successfully');
 
   return (
     <div className="min-h-screen bg-background">

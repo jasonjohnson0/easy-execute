@@ -114,23 +114,15 @@ export function useAuth() {
   };
 
   useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        await fetchUserProfile(session.user);
-      } else {
-        setUser(null);
-      }
-      setLoading(false);
-    };
-
-    getInitialSession();
-
-    // Listen for auth changes
+    let isComponentMounted = true;
+    
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth state change:', event, !!session?.user);
+        
+        if (!isComponentMounted) return;
+        
         // Only synchronous state updates here
         if (session?.user) {
           // Check if this is an email verification event
@@ -138,7 +130,9 @@ export function useAuth() {
           
           // Defer Supabase calls with setTimeout to prevent deadlocks
           setTimeout(() => {
-            fetchUserProfile(session.user, isVerificationEvent);
+            if (isComponentMounted) {
+              fetchUserProfile(session.user, isVerificationEvent);
+            }
           }, 0);
         } else {
           setUser(null);
@@ -150,7 +144,39 @@ export function useAuth() {
       }
     );
 
-    return () => subscription.unsubscribe();
+    // THEN get initial session
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting initial session:', error);
+          setLoading(false);
+          return;
+        }
+        
+        console.log('Initial session loaded:', !!session?.user);
+        
+        if (!isComponentMounted) return;
+        
+        if (session?.user) {
+          await fetchUserProfile(session.user);
+        } else {
+          setUser(null);
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error('Error in getInitialSession:', error);
+        setLoading(false);
+      }
+    };
+
+    getInitialSession();
+
+    return () => {
+      isComponentMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
