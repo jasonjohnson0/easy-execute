@@ -249,7 +249,7 @@ const Index = () => {
           )}
 
           {/* Regular Deals */}
-          {user && showRegularDeals && filteredDeals.length > 0 ? (
+          {filteredDeals.length > 0 ? (
             <div className={`grid gap-6 ${
               layout === 'grid' 
                 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
@@ -263,7 +263,7 @@ const Index = () => {
                 />
               ))}
             </div>
-          ) : user && showRegularDeals && filteredDeals.length === 0 ? (
+          ) : filteredDeals.length === 0 && (searchQuery || selectedCategory !== 'All Categories') ? (
             <div className="text-center py-12">
               <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No deals found</h3>
