@@ -71,10 +71,9 @@ const Index = () => {
             .eq('is_active', true)
             .order('created_at', { ascending: false });
 
-          // Fetch business count
-          const { count: businessCountData, error: businessCountError } = await supabase
-            .from('businesses')
-            .select('id', { count: 'exact', head: true });
+          // Fetch business count using secure function
+          const { data: businessCountData, error: businessCountError } = await supabase
+            .rpc('get_business_count');
 
           console.log('🔍 Business count query response:', { businessCountData, businessCountError });
 
