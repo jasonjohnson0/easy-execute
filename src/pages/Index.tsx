@@ -18,6 +18,7 @@ const Index = () => {
   const { user, showWelcomeModal, setShowWelcomeModal } = useAuth();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [sponsoredOffers, setSponsoredOffers] = useState<SponsoredOffer[]>([]);
+  const [businessCount, setBusinessCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
@@ -70,6 +71,11 @@ const Index = () => {
             .eq('is_active', true)
             .order('created_at', { ascending: false });
 
+          // Fetch business count
+          const { count: businessCountData, error: businessCountError } = await supabase
+            .from('businesses')
+            .select('*', { count: 'exact', head: true });
+
           if (dealsError) {
             console.error('❌ Error fetching deals:', dealsError);
             throw dealsError;
@@ -80,24 +86,33 @@ const Index = () => {
             throw sponsoredError;
           }
 
+          if (businessCountError) {
+            console.error('❌ Error fetching business count:', businessCountError);
+            throw businessCountError;
+          }
+
           const deals = (dealsData || []) as Deal[];
           const sponsored = (sponsoredData || []) as SponsoredOffer[];
+          const businessCountTotal = businessCountData || 0;
           
           console.log('✅ Successfully fetched data:', { 
             dealsCount: deals.length, 
             sponsoredCount: sponsored.length,
+            businessCount: businessCountTotal,
             deals: deals.map(d => ({ id: d.id, title: d.title, active: d.is_active })),
             sponsored: sponsored.map(s => ({ id: s.id, title: s.title, active: s.is_active }))
           });
 
           setDeals(deals);
           setSponsoredOffers(sponsored);
+          setBusinessCount(businessCountTotal);
         } catch (error) {
           console.error('💥 Error fetching deals:', error);
           setError('Failed to load deals. Please try refreshing the page.');
           // Don't fallback to mock data, keep empty arrays to show error state
           setDeals([]);
           setSponsoredOffers([]);
+          setBusinessCount(0);
         }
       }
       
@@ -222,7 +237,7 @@ const Index = () => {
                     <div>Active Deals</div>
                   </div>
                   <div>
-                    <div className="font-semibold text-2xl text-foreground">500+</div>
+                    <div className="font-semibold text-2xl text-foreground">{businessCount + 5}+</div>
                     <div>Local Businesses</div>
                   </div>
                 </div>
