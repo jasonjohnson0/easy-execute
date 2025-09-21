@@ -38,7 +38,12 @@ const App = () => (
         <Toaster />
         <Sonner />
         <NetworkStatus />
-        <BrowserRouter>
+        <BrowserRouter
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/dashboard" element={<BusinessDashboard />} />
