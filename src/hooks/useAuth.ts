@@ -22,38 +22,56 @@ export function useAuth() {
 
   const fetchUserProfile = async (authUser: User, isVerificationEvent = false) => {
     setProfileLoading(true);
+    console.log('fetchUserProfile called for user:', authUser.id, authUser.email);
     try {
       // Check if this is a new user that needs profile creation
       const userMetadata = authUser.user_metadata;
+      console.log('User metadata:', userMetadata);
       
       // Check if user is a business owner
-      const { data: business } = await (supabase as any)
+      const { data: business, error: businessError } = await supabase
         .from('businesses')
         .select('*')
         .eq('id', authUser.id)
         .maybeSingle();
 
+      console.log('Business profile query result:', { business, businessError });
+
+      if (businessError) {
+        console.error('Error fetching business profile:', businessError);
+      }
+
       // Check user profile for referral code
-      const { data: profile } = await (supabase as any)
+      const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('id', authUser.id)
         .maybeSingle();
+
+      console.log('User profile query result:', { profile, profileError });
+
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError);
+      }
 
       // If this is a new business user without a profile, create it
       if (userMetadata?.user_type === 'business' && !business && userMetadata?.business_data) {
         try {
           await createBusinessProfile(authUser, userMetadata.business_data, authUser.email || '');
           // Refresh business data after creation
-          const { data: newBusiness } = await (supabase as any)
+          const { data: newBusiness, error: refreshError } = await supabase
             .from('businesses')
             .select('*')
             .eq('id', authUser.id)
             .maybeSingle();
           
+          if (refreshError) {
+            console.error('Error refreshing business data:', refreshError);
+          }
+          
           const userWithProfiles: AuthUser = {
             ...authUser,
-            businessProfile: newBusiness || undefined,
+            businessProfile: newBusiness as Business || undefined,
             userProfile: profile || undefined
           };
           setUser(userWithProfiles);
@@ -83,15 +101,19 @@ export function useAuth() {
         try {
           await createUserProfile(authUser);
           // Refresh profile data after creation
-          const { data: newProfile } = await (supabase as any)
+          const { data: newProfile, error: refreshProfileError } = await supabase
             .from('user_profiles')
             .select('*')
             .eq('id', authUser.id)
             .maybeSingle();
           
+          if (refreshProfileError) {
+            console.error('Error refreshing user profile:', refreshProfileError);
+          }
+          
           const userWithProfiles: AuthUser = {
             ...authUser,
-            businessProfile: business || undefined,
+            businessProfile: business as Business || undefined,
             userProfile: newProfile || undefined
           };
           setUser(userWithProfiles);
@@ -103,9 +125,15 @@ export function useAuth() {
 
       const userWithProfiles: AuthUser = {
         ...authUser,
-        businessProfile: business || undefined,
+        businessProfile: business as Business || undefined,
         userProfile: profile || undefined
       };
+
+      console.log('Setting user with profiles:', { 
+        hasBusinessProfile: !!business, 
+        businessProfileId: business?.id,
+        businessProfileName: business?.name 
+      });
 
       setUser(userWithProfiles);
 
@@ -249,12 +277,12 @@ export function useAuth() {
         description: businessData.description
       };
 
-      const { error } = await (supabase as any)
+      const { error: businessInsertError } = await supabase
         .from('businesses')
         .insert(sanitizedData);
 
-      if (error) {
-        console.error('Error creating business profile:', error);
+      if (businessInsertError) {
+        console.error('Error creating business profile:', businessInsertError);
         throw new Error('Failed to create business profile');
       }
 
@@ -268,12 +296,12 @@ export function useAuth() {
 
   const createUserProfile = async (user: User) => {
     try {
-      const { error } = await (supabase as any).from('user_profiles').insert({
+      const { error: profileInsertError } = await supabase.from('user_profiles').insert({
         id: user.id,
       });
 
-      if (error) {
-        console.error('Error creating user profile:', error);
+      if (profileInsertError) {
+        console.error('Error creating user profile:', profileInsertError);
         throw new Error('Failed to create user profile');
       }
     } catch (error) {
