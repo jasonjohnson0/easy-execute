@@ -30,6 +30,17 @@ export function BusinessManagement() {
     }
   };
 
+  const getSubscriptionStatusText = (status: string) => {
+    switch (status) {
+      case 'active': return 'Active Business Account';
+      case 'trial': return 'Trial Account';
+      case 'past_due': return 'Past Due';
+      case 'canceled': return 'Canceled';
+      case 'unpaid': return 'Unpaid';
+      default: return status;
+    }
+  };
+
   const getPlanBadgeVariant = (plan: string) => {
     switch (plan) {
       case 'enterprise': return 'default';
@@ -100,7 +111,7 @@ export function BusinessManagement() {
                     <TableCell>
                       <div className="space-y-1">
                         <Badge variant={getSubscriptionBadgeVariant(business.subscription_status)}>
-                          {business.subscription_status}
+                          {getSubscriptionStatusText(business.subscription_status)}
                         </Badge>
                         <div>
                           <Badge variant={getPlanBadgeVariant(business.subscription_plan)} className="text-xs">

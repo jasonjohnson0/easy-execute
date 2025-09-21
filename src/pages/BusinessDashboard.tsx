@@ -282,14 +282,19 @@ export default function BusinessDashboard() {
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col items-end gap-2">
             <Badge variant="secondary" className="gap-1">
               <Store className="w-3 h-3" />
               {isAdmin && !user.businessProfile 
                 ? 'Admin Access' 
-                : user.businessProfile?.subscription_status === 'trial' ? 'Trial Account' : 'Active Account'
+                : 'Active Business Account'
               }
             </Badge>
+            {!isAdmin && user.businessProfile && (
+              <p className="text-sm text-muted-foreground">
+                Thanks for being a member!
+              </p>
+            )}
           </div>
         </div>
 
