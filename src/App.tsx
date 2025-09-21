@@ -10,6 +10,7 @@ import BusinessDashboard from "./pages/BusinessDashboard";
 import BusinessSetup from "./pages/BusinessSetup";
 import CreateDeal from "./pages/CreateDeal";
 import Favorites from "./pages/Favorites";
+import ProductionDashboard from "./pages/ProductionDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/business-setup" element={<BusinessSetup />} />
             <Route path="/create-deal" element={<CreateDeal />} />
             <Route path="/favorites" element={<Favorites />} />
+            <Route path="/production" element={<ProductionDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
