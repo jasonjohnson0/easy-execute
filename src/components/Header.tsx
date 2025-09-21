@@ -14,7 +14,7 @@ import {
   Heart
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useFavorites } from '@/hooks/useFavorites';
+import { useFavoritesQuery } from "@/hooks/useFavoritesQuery";
 import { AuthModal } from './AuthModal';
 import { ShareModal } from './ShareModal';
 import { useNavigate } from 'react-router-dom';
@@ -26,7 +26,7 @@ interface HeaderProps {
 export function Header({ categories }: HeaderProps) {
   // Force cache refresh - removed search functionality
   const { user, loading, signOut } = useAuth();
-  const { favorites } = useFavorites();
+  const { favorites } = useFavoritesQuery();
   const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);

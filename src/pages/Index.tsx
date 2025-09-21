@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Grid3X3, List, Filter, TrendingUp } from 'lucide-react';
+import { Grid3X3, List, Filter, TrendingUp, RefreshCw } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { DealCard } from '@/components/DealCard';
 import { AuthModal } from '@/components/AuthModal';
@@ -10,124 +10,35 @@ import { WelcomeModal } from '@/components/WelcomeModal';
 import { EnhancedSearch } from '@/components/EnhancedSearch';
 import { RecentlyViewedSection } from '@/components/RecentlyViewedSection';
 import { TrendingSection } from '@/components/TrendingSection';
+import { DealSkeletonGrid } from '@/components/ui/deal-skeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { useEnhancedSearch } from '@/hooks/useEnhancedSearch';
-import { mockDeals, mockSponsoredOffers, DEAL_CATEGORIES, USE_MOCK_DEALS } from '@/data/mockData';
-import { supabase } from '@/integrations/supabase/client';
-import type { Deal, SponsoredOffer } from '@/types/database';
+import { useDeals } from '@/hooks/useDeals';
+import { useSponsoredOffers } from '@/hooks/useSponsoredOffers';
+import { useBusinessCount } from '@/hooks/useBusinessCount';
+import { DEAL_CATEGORIES } from '@/data/mockData';
 import heroImage from '@/assets/hero-image.jpg';
 
 const Index = () => {
   const { user, showWelcomeModal, setShowWelcomeModal } = useAuth();
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [sponsoredOffers, setSponsoredOffers] = useState<SponsoredOffer[]>([]);
-  const [businessCount, setBusinessCount] = useState(0);
-  const [loading, setLoading] = useState(true);
   const [layout, setLayout] = useState<'grid' | 'coupon'>('grid');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
   const [authUserType, setAuthUserType] = useState<'hunter' | 'business'>('hunter');
-  const [error, setError] = useState<string | null>(null);
+
+  // React Query hooks for data fetching
+  const { data: deals = [], isLoading: dealsLoading, error: dealsError, refetch: refetchDeals } = useDeals();
+  const { data: sponsoredOffers = [], isLoading: sponsoredLoading, error: sponsoredError } = useSponsoredOffers();
+  const { data: businessCount = 0, isLoading: businessCountLoading } = useBusinessCount();
 
   // Enhanced search functionality
   const { filters, setFilters, filteredDeals, searchStats } = useEnhancedSearch(deals);
 
-  useEffect(() => {
-    const fetchDeals = async () => {
-      console.log('🔄 Fetching deals...', { 
-        authenticated: !!user, 
-        userId: user?.id, 
-        mockMode: USE_MOCK_DEALS 
-      });
-      
-      setLoading(true);
-      setError(null);
-      
-      if (USE_MOCK_DEALS) {
-        console.log('📊 Using mock data for development');
-        setDeals(mockDeals);
-        setSponsoredOffers(mockSponsoredOffers);
-      } else {
-        try {
-          console.log('🌐 Fetching real deals from Supabase...');
-          
-          // Fetch real deals from Supabase
-          const { data: dealsData, error: dealsError } = await (supabase as any)
-            .from('deals')
-            .select(`
-              *,
-              businesses (
-                name,
-                category
-              )
-            `)
-            .eq('is_active', true)
-            .order('created_at', { ascending: false });
+  // Combined loading state
+  const loading = dealsLoading || sponsoredLoading || businessCountLoading;
+  const error = dealsError || sponsoredError;
 
-          const { data: sponsoredData, error: sponsoredError } = await (supabase as any)
-            .from('sponsored_offers')
-            .select(`
-              *,
-              businesses (
-                name
-              )
-            `)
-            .eq('is_active', true)
-            .order('created_at', { ascending: false });
-
-          // Fetch business count using secure function
-          const { data: businessCountData, error: businessCountError } = await supabase
-            .rpc('get_business_count');
-
-          console.log('🔍 Business count query response:', { businessCountData, businessCountError });
-
-          if (dealsError) {
-            console.error('❌ Error fetching deals:', dealsError);
-            throw dealsError;
-          }
-          
-          if (sponsoredError) {
-            console.error('❌ Error fetching sponsored offers:', sponsoredError);
-            throw sponsoredError;
-          }
-
-          if (businessCountError) {
-            console.error('❌ Error fetching business count:', businessCountError);
-            throw businessCountError;
-          }
-
-          const deals = (dealsData || []) as Deal[];
-          const sponsored = (sponsoredData || []) as SponsoredOffer[];
-          const businessCountTotal = (businessCountData ?? 0);
-          
-          console.log('✅ Successfully fetched data:', { 
-            dealsCount: deals.length, 
-            sponsoredCount: sponsored.length,
-            businessCount: businessCountTotal,
-            deals: deals.map(d => ({ id: d.id, title: d.title, active: d.is_active })),
-            sponsored: sponsored.map(s => ({ id: s.id, title: s.title, active: s.is_active }))
-          });
-
-          setDeals(deals);
-          setSponsoredOffers(sponsored);
-          setBusinessCount(businessCountTotal);
-        } catch (error) {
-          console.error('💥 Error fetching deals:', error);
-          setError('Failed to load deals. Please try refreshing the page.');
-          // Don't fallback to mock data, keep empty arrays to show error state
-          setDeals([]);
-          setSponsoredOffers([]);
-          setBusinessCount(0);
-        }
-      }
-      
-      setLoading(false);
-    };
-
-    fetchDeals();
-  }, [user]); // Re-fetch when user authentication changes
-
-  // Debug filtering results
+  // Debug filtering results (keep for development)
   console.log('🔍 Enhanced filtering results:', {
     totalDeals: deals.length,
     filteredDeals: filteredDeals.length,
@@ -138,20 +49,27 @@ const Index = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header
-          categories={DEAL_CATEGORIES}
-        />
-        <div className="container py-8">
-          <EnhancedSearch 
-            filters={filters}
-            onFiltersChange={setFilters}
-            categories={DEAL_CATEGORIES}
-          />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-48 bg-muted animate-pulse rounded-lg" />
-            ))}
+        <Header categories={DEAL_CATEGORIES} />
+        
+        <div className="border-b bg-muted/30">
+          <div className="container py-6">
+            <EnhancedSearch 
+              filters={filters}
+              onFiltersChange={setFilters}
+              categories={DEAL_CATEGORIES}
+            />
           </div>
+        </div>
+
+        <div className="container py-8">
+          <div className="flex justify-between items-center mb-6">
+            <div className="space-y-1">
+              <div className="h-8 w-48 bg-muted animate-pulse rounded" />
+              <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+            </div>
+          </div>
+          
+          <DealSkeletonGrid count={6} layout={layout} />
         </div>
       </div>
     );
@@ -258,15 +176,25 @@ const Index = () => {
           {/* Error State */}
           {error && (
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-6">
-              <p className="text-destructive font-medium">⚠️ {error}</p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="mt-2"
-                onClick={() => window.location.reload()}
-              >
-                Retry
-              </Button>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-destructive font-medium">⚠️ Failed to load deals</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Check your connection and try again
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    refetchDeals();
+                  }}
+                  className="shrink-0 ml-4"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Retry
+                </Button>
+              </div>
             </div>
           )}
           {/* Controls */}

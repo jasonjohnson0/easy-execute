@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Header } from '@/components/Header';
 import { DealCard } from '@/components/DealCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { DealSkeletonGrid } from '@/components/ui/deal-skeleton';
 import { Heart, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useFavorites } from '@/hooks/useFavorites';
+import { useFavoritesQuery } from '@/hooks/useFavoritesQuery';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Deal } from '@/types/database';
 import { useNavigate } from 'react-router-dom';
@@ -14,50 +15,37 @@ import { AuthModal } from '@/components/AuthModal';
 
 export default function Favorites() {
   const { user } = useAuth();
-  const { favorites, loading: favoritesLoading, refetchFavorites } = useFavorites();
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { favorites, loading: favoritesLoading, getFavoritedDealIds } = useFavoritesQuery();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const navigate = useNavigate();
 
-  // Fetch deal details for favorited deals
-  const fetchFavoriteDeals = async () => {
-    if (!user || favorites.length === 0) {
-      setDeals([]);
-      return;
-    }
+  const favoriteIds = getFavoritedDealIds();
 
-    setLoading(true);
-    try {
-      const dealIds = favorites.map(fav => fav.deal_id);
-      
+  // Fetch deal details for favorited deals using React Query
+  const { data: deals = [], isLoading: dealsLoading } = useQuery({
+    queryKey: ['favorite-deals', favoriteIds],
+    queryFn: async (): Promise<Deal[]> => {
+      if (!user || favoriteIds.length === 0) return [];
+
       const { data, error } = await supabase
         .from('deals')
         .select(`
           *,
           businesses(name, category)
         `)
-        .in('id', dealIds)
+        .in('id', favoriteIds)
         .eq('is_active', true)
         .gte('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setDeals((data as any) || []);
-    } catch (error) {
-      console.error('Error fetching favorite deals:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return (data as any) || [];
+    },
+    enabled: !!user && favoriteIds.length > 0,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
 
-  useEffect(() => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-    fetchFavoriteDeals();
-  }, [user, favorites]);
+  const loading = favoritesLoading || dealsLoading;
 
   // Show auth modal if not signed in
   if (!user) {
@@ -118,23 +106,12 @@ export default function Favorites() {
           </div>
 
           {/* Loading State */}
-          {(loading || favoritesLoading) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="h-64">
-                  <CardContent className="p-6">
-                    <Skeleton className="h-4 w-3/4 mb-2" />
-                    <Skeleton className="h-3 w-1/2 mb-4" />
-                    <Skeleton className="h-20 w-full mb-4" />
-                    <Skeleton className="h-8 w-full" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+          {loading && (
+            <DealSkeletonGrid count={6} layout="grid" />
           )}
 
           {/* No Favorites State */}
-          {!loading && !favoritesLoading && deals.length === 0 && (
+          {!loading && deals.length === 0 && (
             <div className="text-center py-16">
               <Heart className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
               <h2 className="text-2xl font-semibold mb-2">No favorite deals yet</h2>
@@ -148,7 +125,7 @@ export default function Favorites() {
           )}
 
           {/* Deals Grid */}
-          {!loading && !favoritesLoading && deals.length > 0 && (
+          {!loading && deals.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {deals.map((deal) => (
                 <DealCard

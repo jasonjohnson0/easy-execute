@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import { Deal, SponsoredOffer } from "@/types/database";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { useFavorites } from "@/hooks/useFavorites";
+import { useFavoritesQuery } from "@/hooks/useFavoritesQuery";
 import { useAuth } from "@/hooks/useAuth";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 
@@ -20,7 +20,7 @@ interface DealCardProps {
 
 export function DealCard({ deal, layout = 'grid', isSponsored = false }: DealCardProps) {
   const { user } = useAuth();
-  const { isFavorited, toggleFavorite } = useFavorites();
+  const { isFavorited, toggleFavorite, isToggling } = useFavoritesQuery();
   const { addRecentlyViewed } = useRecentlyViewed();
   const [printing, setPrinting] = useState(false);
 
