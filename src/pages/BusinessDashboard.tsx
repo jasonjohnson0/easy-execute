@@ -17,6 +17,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { mockDeals, USE_MOCK_DEALS } from '@/data/mockData';
 import type { Deal } from '@/types/database';
@@ -25,6 +26,7 @@ import { toast } from '@/hooks/use-toast';
 
 export default function BusinessDashboard() {
   const { user, loading: authLoading, profileLoading } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdminAuth();
   const navigate = useNavigate();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,11 +48,12 @@ export default function BusinessDashboard() {
 
   useEffect(() => {
     // Wait for both auth and profile loading to complete
-    if (!authLoading && !profileLoading) {
-      if (!user || !user.businessProfile) {
+    if (!authLoading && !profileLoading && !adminLoading) {
+      // Allow access for both business owners and admins
+      if (!user || (!user.businessProfile && !isAdmin)) {
         toast({
           title: "Access Denied",
-          description: "You need to be signed in as a business owner to access this page.",
+          description: "You need to be signed in as a business owner or admin to access this page.",
           variant: "destructive"
         });
         navigate('/');
@@ -59,9 +62,16 @@ export default function BusinessDashboard() {
 
       fetchBusinessDeals();
     }
-  }, [user, authLoading, profileLoading, navigate]);
+  }, [user, authLoading, profileLoading, adminLoading, navigate, isAdmin]);
 
   const fetchBusinessDeals = async () => {
+    // If admin without business profile, show empty state or redirect to admin panel
+    if (isAdmin && !user?.businessProfile) {
+      setLoading(false);
+      return;
+    }
+    
+    // Regular business user must have a business profile
     if (!user?.businessProfile) return;
 
     setLoading(true);
@@ -149,7 +159,7 @@ export default function BusinessDashboard() {
     }
   };
 
-  if (authLoading || profileLoading || loading) {
+  if (authLoading || profileLoading || adminLoading || loading) {
     return (
       <div className="min-h-screen bg-background p-4">
         <div className="container max-w-7xl">
@@ -167,12 +177,13 @@ export default function BusinessDashboard() {
     );
   }
 
-  if (!user?.businessProfile) {
+  // Allow admins to see the dashboard even without a business profile
+  if (!user?.businessProfile && !isAdmin) {
     return null; // Will redirect in useEffect
   }
 
-  // Show setup overlay if business profile is incomplete
-  if (!isBusinessProfileComplete(user.businessProfile)) {
+  // Show setup overlay if business profile is incomplete (only for business users, not admins)
+  if (user.businessProfile && !isBusinessProfileComplete(user.businessProfile) && !isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center max-w-2xl mx-auto">
@@ -263,7 +274,10 @@ export default function BusinessDashboard() {
             <div>
               <h1 className="text-3xl font-bold">Business Dashboard</h1>
               <p className="text-muted-foreground">
-                Welcome back, {user.businessProfile.name}
+                {isAdmin && !user.businessProfile 
+                  ? "Admin View - Viewing Business Dashboard" 
+                  : `Welcome back, ${user.businessProfile?.name || user.email}`
+                }
               </p>
             </div>
           </div>
@@ -271,10 +285,37 @@ export default function BusinessDashboard() {
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="gap-1">
               <Store className="w-3 h-3" />
-              {user.businessProfile.subscription_status === 'trial' ? 'Trial Account' : 'Active Account'}
+              {isAdmin && !user.businessProfile 
+                ? 'Admin Access' 
+                : user.businessProfile?.subscription_status === 'trial' ? 'Trial Account' : 'Active Account'
+              }
             </Badge>
           </div>
         </div>
+
+        {/* Admin Notice */}
+        {isAdmin && !user.businessProfile && (
+          <Card className="mb-8 border-orange-200 bg-orange-50">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="border-orange-300 text-orange-700">
+                  Admin View
+                </Badge>
+                <p className="text-orange-700">
+                  You're viewing the business dashboard as an admin. To manage a specific business, you would need a business profile.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/admin')}
+                  className="ml-auto"
+                >
+                  Go to Admin Dashboard
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
