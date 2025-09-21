@@ -81,12 +81,12 @@ export function Header({ categories }: HeaderProps) {
                   )}
                 </Button>
 
-                {user.businessProfile && (
+                {(user.businessProfile || isAdmin) && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="pulse-business gap-1 px-2 py-1 h-auto">
                         <Store className="w-3 h-3" />
-                        Business
+                        {isAdmin && !user.businessProfile ? 'Dashboard' : 'Business'}
                         <ChevronDown className="w-3 h-3" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -98,13 +98,15 @@ export function Header({ categories }: HeaderProps) {
                         <Store className="w-4 h-4" />
                         Dashboard
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => navigate('/create-deal')}
-                        className="gap-2 pulse-business"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Add New Offer
-                      </DropdownMenuItem>
+                      {(user.businessProfile || isAdmin) && (
+                        <DropdownMenuItem 
+                          onClick={() => navigate('/create-deal')}
+                          className="gap-2 pulse-business"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add New Offer
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 )}
@@ -181,11 +183,11 @@ export function Header({ categories }: HeaderProps) {
                     Favorites ({favorites.length})
                   </Button>
 
-                  {user.businessProfile && (
+                  {(user.businessProfile || isAdmin) && (
                     <div className="space-y-2">
                       <div className="pulse-business rounded px-2 py-1 text-xs font-medium flex items-center gap-1">
                         <Store className="w-3 h-3" />
-                        Business Account
+                        {isAdmin && !user.businessProfile ? 'Admin Dashboard Access' : 'Business Account'}
                       </div>
                       <Button
                         variant="ghost"
@@ -198,17 +200,19 @@ export function Header({ categories }: HeaderProps) {
                         <Store className="w-4 h-4" />
                         Dashboard
                       </Button>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start gap-2 pulse-business"
-                        onClick={() => {
-                          navigate('/create-deal');
-                          setMobileMenuOpen(false);
-                        }}
-                      >
-                        <Plus className="w-4 h-4" />
-                        Add New Offer
-                      </Button>
+                      {(user.businessProfile || isAdmin) && (
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2 pulse-business"
+                          onClick={() => {
+                            navigate('/create-deal');
+                            setMobileMenuOpen(false);
+                          }}
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add New Offer
+                        </Button>
+                      )}
                     </div>
                   )}
                   <Button
