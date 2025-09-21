@@ -421,6 +421,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_admin_role: {
+        Args: { target_email: string }
+        Returns: boolean
+      }
       calculate_distance: {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number
@@ -429,9 +433,25 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_all_businesses: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_all_deals: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_all_users: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_business_count: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      get_platform_analytics: {
+        Args: { end_date?: string; start_date?: string }
+        Returns: Json
       }
       get_public_business_info: {
         Args: {
@@ -456,6 +476,10 @@ export type Database = {
       }
       is_business_open_now: {
         Args: { business_uuid: string }
+        Returns: boolean
+      }
+      remove_admin_role: {
+        Args: { target_email: string }
         Returns: boolean
       }
     }
