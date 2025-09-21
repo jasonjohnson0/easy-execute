@@ -10,9 +10,11 @@ import {
   Menu,
   X,
   Plus,
-  ChevronDown
+  ChevronDown,
+  Heart
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useFavorites } from '@/hooks/useFavorites';
 import { AuthModal } from './AuthModal';
 import { ShareModal } from './ShareModal';
 import { useNavigate } from 'react-router-dom';
@@ -24,6 +26,7 @@ interface HeaderProps {
 export function Header({ categories }: HeaderProps) {
   // Force cache refresh - removed search functionality
   const { user, loading, signOut } = useAuth();
+  const { favorites } = useFavorites();
   const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -57,6 +60,24 @@ export function Header({ categories }: HeaderProps) {
               <div className="w-8 h-8 animate-pulse bg-muted rounded-full" />
             ) : user ? (
               <div className="flex items-center space-x-2">
+                {/* Favorites Button */}
+                <Button 
+                  variant="ghost" 
+                  onClick={() => navigate('/favorites')}
+                  className="relative gap-2"
+                >
+                  <Heart className="h-4 w-4" />
+                  Favorites
+                  {favorites.length > 0 && (
+                    <Badge 
+                      variant="destructive" 
+                      className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
+                    >
+                      {favorites.length}
+                    </Badge>
+                  )}
+                </Button>
+
                 {user.businessProfile && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -141,6 +162,19 @@ export function Header({ categories }: HeaderProps) {
             <div className="container py-4 px-4 space-y-4">
               {user ? (
                 <div className="space-y-2">
+                  {/* Mobile Favorites Button */}
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2"
+                    onClick={() => {
+                      navigate('/favorites');
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <Heart className="w-4 h-4" />
+                    Favorites ({favorites.length})
+                  </Button>
+
                   {user.businessProfile && (
                     <div className="space-y-2">
                       <div className="pulse-business rounded px-2 py-1 text-xs font-medium flex items-center gap-1">

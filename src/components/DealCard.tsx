@@ -1,21 +1,15 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { 
-  Eye, 
-  Printer, 
-  Calendar,
-  MapPin,
-  Tag,
-  Clock,
-  ExternalLink
-} from 'lucide-react';
-import { format } from 'date-fns';
-import type { Deal, SponsoredOffer } from '@/types/database';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { MapPin, Eye, Printer, Clock, Calendar, Heart, Tag, ExternalLink } from "lucide-react";
+import { format } from "date-fns";
+import { Deal, SponsoredOffer } from "@/types/database";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { useFavorites } from "@/hooks/useFavorites";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DealCardProps {
   deal: Deal | (SponsoredOffer & { businesses?: { name: string; category?: string } });
@@ -24,11 +18,19 @@ interface DealCardProps {
 }
 
 export function DealCard({ deal, layout = 'grid', isSponsored = false }: DealCardProps) {
+  const { user } = useAuth();
+  const { isFavorited, toggleFavorite } = useFavorites();
   const [printing, setPrinting] = useState(false);
 
-  // Type guard to check if deal is sponsored offer
-  const isSponsoredOffer = (item: any): item is SponsoredOffer => {
-    return 'offer_type' in item;
+  const isSponsoredOffer = (deal: Deal | (SponsoredOffer & { businesses?: { name: string } })): deal is SponsoredOffer & { businesses?: { name: string } } => {
+    return 'offer_type' in deal;
+  };
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering parent click events
+    if (!isSponsoredOffer(deal)) {
+      toggleFavorite(deal.id);
+    }
   };
 
   const updateViewCount = async () => {
@@ -215,9 +217,27 @@ export function DealCard({ deal, layout = 'grid', isSponsored = false }: DealCar
                 {deal.businesses?.name}
               </p>
             </div>
-            <div className="text-right">
-              <div className="deal-highlight text-2xl font-bold px-3 py-1 rounded-lg">
-                {getDiscountDisplay()}
+            <div className="flex items-center gap-2">
+              {!isSponsoredOffer(deal) && user && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleFavoriteClick}
+                  className="p-1 h-auto hover:bg-accent/50"
+                >
+                  <Heart 
+                    className={`h-4 w-4 ${
+                      isFavorited(deal.id) 
+                        ? 'fill-red-500 text-red-500' 
+                        : 'text-muted-foreground hover:text-red-500'
+                    }`} 
+                  />
+                </Button>
+              )}
+              <div className="text-right">
+                <div className="deal-highlight text-2xl font-bold px-3 py-1 rounded-lg">
+                  {getDiscountDisplay()}
+                </div>
               </div>
             </div>
           </div>
@@ -323,8 +343,26 @@ export function DealCard({ deal, layout = 'grid', isSponsored = false }: DealCar
               {deal.businesses?.name}
             </p>
           </div>
-          <div className="deal-highlight text-sm font-bold px-2 py-1 rounded whitespace-nowrap">
-            {getDiscountDisplay()}
+          <div className="flex items-center gap-2">
+            {!isSponsoredOffer(deal) && user && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleFavoriteClick}
+                className="p-1 h-auto hover:bg-accent/50"
+              >
+                <Heart 
+                  className={`h-4 w-4 ${
+                    isFavorited(deal.id) 
+                      ? 'fill-red-500 text-red-500' 
+                      : 'text-muted-foreground hover:text-red-500'
+                  }`} 
+                />
+              </Button>
+            )}
+            <div className="deal-highlight text-sm font-bold px-2 py-1 rounded whitespace-nowrap">
+              {getDiscountDisplay()}
+            </div>
           </div>
         </div>
       </CardHeader>
