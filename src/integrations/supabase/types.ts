@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      business_hours: {
+        Row: {
+          business_id: string
+          close_time: string | null
+          created_at: string
+          day_of_week: number
+          id: string
+          is_closed: boolean
+          open_time: string | null
+        }
+        Insert: {
+          business_id: string
+          close_time?: string | null
+          created_at?: string
+          day_of_week: number
+          id?: string
+          is_closed?: boolean
+          open_time?: string | null
+        }
+        Update: {
+          business_id?: string
+          close_time?: string | null
+          created_at?: string
+          day_of_week?: number
+          id?: string
+          is_closed?: boolean
+          open_time?: string | null
+        }
+        Relationships: []
+      }
       businesses: {
         Row: {
           address: string | null
@@ -22,13 +52,16 @@ export type Database = {
           description: string | null
           email: string
           id: string
+          latitude: number | null
           logo_url: string | null
+          longitude: number | null
           name: string
           phone: string | null
           referral_code: string
           referred_by: string | null
           subscription_plan: string
           subscription_status: string
+          timezone: string | null
         }
         Insert: {
           address?: string | null
@@ -37,13 +70,16 @@ export type Database = {
           description?: string | null
           email: string
           id?: string
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           name: string
           phone?: string | null
           referral_code?: string
           referred_by?: string | null
           subscription_plan?: string
           subscription_status?: string
+          timezone?: string | null
         }
         Update: {
           address?: string | null
@@ -52,13 +88,16 @@ export type Database = {
           description?: string | null
           email?: string
           id?: string
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           name?: string
           phone?: string | null
           referral_code?: string
           referred_by?: string | null
           subscription_plan?: string
           subscription_status?: string
+          timezone?: string | null
         }
         Relationships: []
       }
@@ -238,9 +277,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_distance: {
+        Args: { lat1: number; lat2: number; lon1: number; lon2: number }
+        Returns: number
+      }
       get_business_count: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      is_business_open_now: {
+        Args: { business_uuid: string }
+        Returns: boolean
       }
     }
     Enums: {
