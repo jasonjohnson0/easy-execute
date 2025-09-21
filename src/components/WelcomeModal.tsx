@@ -60,16 +60,16 @@ export function WelcomeModal({ open, onOpenChange, businessName }: WelcomeModalP
           </div>
         </DialogHeader>
 
-        <div className="space-y-4 mt-6">
+        <div className="space-y-3 mt-6">
           <Button
-            size="lg"
-            className="w-full gap-3 text-lg py-6 animate-fade-in"
+            size="default"
+            className="w-full gap-2 animate-fade-in"
             onClick={handleCreateDeal}
             style={{ animationDelay: '0.1s' }}
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4" />
             Create My First Deal
-            <ArrowRight className="w-5 h-5" />
+            <ArrowRight className="w-4 h-4" />
           </Button>
 
           <div className="relative">
@@ -83,13 +83,13 @@ export function WelcomeModal({ open, onOpenChange, businessName }: WelcomeModalP
 
           <Button
             variant="outline"
-            size="lg"
+            size="default"
             className="w-full gap-2 animate-fade-in"
             onClick={handleGoToDashboard}
             style={{ animationDelay: '0.2s' }}
           >
             <BarChart3 className="w-4 h-4" />
-            I'm not ready for more business, take me to the dashboard
+            I'm not ready, take me to dashboard
           </Button>
         </div>
 

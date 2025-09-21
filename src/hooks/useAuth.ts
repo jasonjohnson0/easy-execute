@@ -58,10 +58,19 @@ export function useAuth() {
           };
           setUser(userWithProfiles);
           
-          // If this is from email verification and it's a new business user, show welcome modal
-          if (isVerificationEvent && userMetadata?.user_type === 'business') {
+          // If this is from email verification and it's a new business user, check if they have deals
+          if (isVerificationEvent && userMetadata?.user_type === 'business' && newBusiness) {
             setIsNewBusinessUser(true);
-            setTimeout(() => setShowWelcomeModal(true), 1000);
+            // Check if user has any deals before showing welcome modal
+            const { data: existingDeals } = await supabase
+              .from('deals')
+              .select('id')
+              .eq('business_id', newBusiness.id)
+              .limit(1);
+            
+            if (!existingDeals || existingDeals.length === 0) {
+              setTimeout(() => setShowWelcomeModal(true), 1000);
+            }
           }
           return;
         } catch (error) {
@@ -103,7 +112,16 @@ export function useAuth() {
       // Check if this is a returning business user after email verification
       if (isVerificationEvent && userMetadata?.user_type === 'business' && business) {
         setIsNewBusinessUser(true);
-        setTimeout(() => setShowWelcomeModal(true), 1000);
+        // Check if user has any deals before showing welcome modal
+        const { data: existingDeals } = await supabase
+          .from('deals')
+          .select('id')
+          .eq('business_id', business.id)
+          .limit(1);
+        
+        if (!existingDeals || existingDeals.length === 0) {
+          setTimeout(() => setShowWelcomeModal(true), 1000);
+        }
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
