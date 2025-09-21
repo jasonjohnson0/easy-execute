@@ -95,12 +95,9 @@ const Index = () => {
         } catch (error) {
           console.error('💥 Error fetching deals:', error);
           setError('Failed to load deals. Please try refreshing the page.');
-          // Fallback to mock data on error for development
-          if (process.env.NODE_ENV === 'development') {
-            console.log('🔄 Falling back to mock data...');
-            setDeals(mockDeals);
-            setSponsoredOffers(mockSponsoredOffers);
-          }
+          // Don't fallback to mock data, keep empty arrays to show error state
+          setDeals([]);
+          setSponsoredOffers([]);
         }
       }
       
