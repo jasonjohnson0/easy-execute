@@ -50,27 +50,20 @@ export default function CreateDeal() {
     // Wait for both auth and profile loading to complete
     if (!authLoading && !profileLoading) {
       if (!user || !user.businessProfile) {
-        // If coming from setup or welcome, give it a bit more time for the profile to load
-        if (fromSetup || fromWelcome) {
-          const timer = setTimeout(() => {
-            if (!user || !user.businessProfile) {
-              toast({
-                title: "Access Denied",
-                description: "You need to be signed in as a business owner to create deals.",
-                variant: "destructive"
-              });
-              navigate('/');
-            }
-          }, 1000);
-          return () => clearTimeout(timer);
-        } else {
-          toast({
-            title: "Access Denied",
-            description: "You need to be signed in as a business owner to create deals.",
-            variant: "destructive"
-          });
-          navigate('/');
-        }
+        // Give extra time for profile loading, especially from special flows
+        const delay = (fromSetup || fromWelcome) ? 2000 : 1500;
+        
+        const timer = setTimeout(() => {
+          if (!user || !user.businessProfile) {
+            toast({
+              title: "Access Denied",
+              description: "You need to be signed in as a business owner to create deals.",
+              variant: "destructive"
+            });
+            navigate('/');
+          }
+        }, delay);
+        return () => clearTimeout(timer);
       }
     }
   }, [user, authLoading, profileLoading, navigate, fromSetup, fromWelcome]);

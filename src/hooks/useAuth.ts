@@ -19,14 +19,20 @@ export function useAuth() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [isNewBusinessUser, setIsNewBusinessUser] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [isProfileFetching, setIsProfileFetching] = useState(false);
 
   const fetchUserProfile = async (authUser: User, isVerificationEvent = false) => {
+    // Prevent multiple simultaneous calls
+    if (isProfileFetching) {
+      return;
+    }
+
+    setIsProfileFetching(true);
     setProfileLoading(true);
-    console.log('fetchUserProfile called for user:', authUser.id, authUser.email);
+    
     try {
       // Check if this is a new user that needs profile creation
       const userMetadata = authUser.user_metadata;
-      console.log('User metadata:', userMetadata);
       
       // Check if user is a business owner
       const { data: business, error: businessError } = await supabase
@@ -34,8 +40,6 @@ export function useAuth() {
         .select('*')
         .eq('id', authUser.id)
         .maybeSingle();
-
-      console.log('Business profile query result:', { business, businessError });
 
       if (businessError) {
         console.error('Error fetching business profile:', businessError);
@@ -47,8 +51,6 @@ export function useAuth() {
         .select('*')
         .eq('id', authUser.id)
         .maybeSingle();
-
-      console.log('User profile query result:', { profile, profileError });
 
       if (profileError) {
         console.error('Error fetching user profile:', profileError);
@@ -129,12 +131,6 @@ export function useAuth() {
         userProfile: profile || undefined
       };
 
-      console.log('Setting user with profiles:', { 
-        hasBusinessProfile: !!business, 
-        businessProfileId: business?.id,
-        businessProfileName: business?.name 
-      });
-
       setUser(userWithProfiles);
 
       // Check if this is a returning business user after email verification
@@ -156,6 +152,7 @@ export function useAuth() {
       setUser(authUser);
     } finally {
       setProfileLoading(false);
+      setIsProfileFetching(false);
     }
   };
 
@@ -165,8 +162,6 @@ export function useAuth() {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth state change:', event, !!session?.user);
-        
         if (!isComponentMounted) return;
         
         // Only synchronous state updates here
@@ -185,6 +180,7 @@ export function useAuth() {
           setProfileLoading(false);
           setShowWelcomeModal(false);
           setIsNewBusinessUser(false);
+          setIsProfileFetching(false);
         }
         setLoading(false);
       }
@@ -200,8 +196,6 @@ export function useAuth() {
           setLoading(false);
           return;
         }
-        
-        console.log('Initial session loaded:', !!session?.user);
         
         if (!isComponentMounted) return;
         

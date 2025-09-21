@@ -51,16 +51,21 @@ export default function BusinessDashboard() {
     if (!authLoading && !profileLoading && !adminLoading) {
       // Allow access for both business owners and admins
       if (!user || (!user.businessProfile && !isAdmin)) {
-        toast({
-          title: "Access Denied",
-          description: "You need to be signed in as a business owner or admin to access this page.",
-          variant: "destructive"
-        });
-        navigate('/');
-        return;
+        // Give extra time for profile to load before redirecting
+        const timer = setTimeout(() => {
+          if (!user || (!user.businessProfile && !isAdmin)) {
+            toast({
+              title: "Access Denied",
+              description: "You need to be signed in as a business owner or admin to access this page.",
+              variant: "destructive"
+            });
+            navigate('/');
+          }
+        }, 1500);
+        return () => clearTimeout(timer);
+      } else {
+        fetchBusinessDeals();
       }
-
-      fetchBusinessDeals();
     }
   }, [user, authLoading, profileLoading, adminLoading, navigate, isAdmin]);
 
