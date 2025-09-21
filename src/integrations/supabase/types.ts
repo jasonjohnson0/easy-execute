@@ -429,6 +429,10 @@ export type Database = {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number
       }
+      get_active_deals_count: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       get_admin_metrics: {
         Args: Record<PropertyKey, never>
         Returns: Json

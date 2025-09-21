@@ -16,6 +16,7 @@ import { useEnhancedSearch } from '@/hooks/useEnhancedSearch';
 import { useDeals } from '@/hooks/useDeals';
 import { useSponsoredOffers } from '@/hooks/useSponsoredOffers';
 import { useBusinessCount } from '@/hooks/useBusinessCount';
+import { useActiveDealsCount } from '@/hooks/useActiveDealsCount';
 import { DEAL_CATEGORIES } from '@/data/mockData';
 import heroImage from '@/assets/hero-image.jpg';
 
@@ -30,12 +31,13 @@ const Index = () => {
   const { data: deals = [], isLoading: dealsLoading, error: dealsError, refetch: refetchDeals } = useDeals();
   const { data: sponsoredOffers = [], isLoading: sponsoredLoading, error: sponsoredError } = useSponsoredOffers();
   const { data: businessCount = 0, isLoading: businessCountLoading } = useBusinessCount();
+  const { data: activeDealsCount = 0, isLoading: activeDealsCountLoading } = useActiveDealsCount();
 
   // Enhanced search functionality
   const { filters, setFilters, filteredDeals, searchStats } = useEnhancedSearch(deals);
 
   // Combined loading state
-  const loading = dealsLoading || sponsoredLoading || businessCountLoading;
+  const loading = dealsLoading || sponsoredLoading || businessCountLoading || activeDealsCountLoading;
   const error = dealsError || sponsoredError;
 
   // Debug filtering results (keep for development)
@@ -147,7 +149,7 @@ const Index = () => {
 
                 <div className="flex gap-8 text-sm text-muted-foreground">
                   <div>
-                    <div className="font-semibold text-2xl text-foreground">{deals.length}+</div>
+                    <div className="font-semibold text-2xl text-foreground">{activeDealsCount + 5}+</div>
                     <div>Active Deals</div>
                   </div>
                   <div>
