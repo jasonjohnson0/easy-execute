@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { 
-  User, 
   LogOut, 
   Store, 
   Share2,
@@ -17,6 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFavoritesQuery } from "@/hooks/useFavoritesQuery";
 import { AuthModal } from './AuthModal';
 import { ShareModal } from './ShareModal';
+import { ProfileDropdown } from './ProfileDropdown';
 import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
@@ -114,15 +114,7 @@ export function Header({ categories }: HeaderProps) {
                   <Share2 className="w-4 h-4" />
                   Share Deals!
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => signOut()}
-                  className="gap-2 text-destructive hover:text-destructive"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Sign Out
-                </Button>
+                <ProfileDropdown />
               </div>
             ) : (
               <div className="flex items-center space-x-2">
@@ -216,17 +208,9 @@ export function Header({ categories }: HeaderProps) {
                     <Share2 className="w-4 h-4" />
                     Share Deals!
                   </Button>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start gap-2 text-destructive hover:text-destructive"
-                    onClick={() => {
-                      signOut();
-                      setMobileMenuOpen(false);
-                    }}
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Sign Out
-                  </Button>
+                  <div className="w-full" onClick={() => setMobileMenuOpen(false)}>
+                    <ProfileDropdown />
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-2">
