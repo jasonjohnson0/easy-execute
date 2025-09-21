@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Grid3X3, List, Filter, TrendingUp } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { DealCard } from '@/components/DealCard';
 import { AuthModal } from '@/components/AuthModal';
 import { WelcomeModal } from '@/components/WelcomeModal';
+import { EnhancedSearch } from '@/components/EnhancedSearch';
 import { useAuth } from '@/hooks/useAuth';
+import { useEnhancedSearch } from '@/hooks/useEnhancedSearch';
 import { mockDeals, mockSponsoredOffers, DEAL_CATEGORIES, USE_MOCK_DEALS } from '@/data/mockData';
 import { supabase } from '@/integrations/supabase/client';
 import type { Deal, SponsoredOffer } from '@/types/database';
@@ -20,13 +21,14 @@ const Index = () => {
   const [sponsoredOffers, setSponsoredOffers] = useState<SponsoredOffer[]>([]);
   const [businessCount, setBusinessCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [layout, setLayout] = useState<'grid' | 'coupon'>('grid');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
   const [authUserType, setAuthUserType] = useState<'hunter' | 'business'>('hunter');
   const [error, setError] = useState<string | null>(null);
+
+  // Enhanced search functionality
+  const { filters, setFilters, filteredDeals, searchStats } = useEnhancedSearch(deals);
 
   useEffect(() => {
     const fetchDeals = async () => {
@@ -123,26 +125,11 @@ const Index = () => {
     fetchDeals();
   }, [user]); // Re-fetch when user authentication changes
 
-  // Filter deals based on search and category
-  const filteredDeals = deals.filter(deal => {
-    const matchesSearch = 
-      deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      deal.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (deal.businesses?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesCategory = 
-      selectedCategory === 'All Categories' || 
-      deal.businesses?.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
-  });
-
   // Debug filtering results
-  console.log('🔍 Filtering results:', {
+  console.log('🔍 Enhanced filtering results:', {
     totalDeals: deals.length,
     filteredDeals: filteredDeals.length,
-    searchQuery,
-    selectedCategory,
+    searchStats,
     user: !!user
   });
 
@@ -150,14 +137,15 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
           categories={DEAL_CATEGORIES}
         />
         <div className="container py-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <EnhancedSearch 
+            filters={filters}
+            onFiltersChange={setFilters}
+            categories={DEAL_CATEGORIES}
+          />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="h-48 bg-muted animate-pulse rounded-lg" />
             ))}
@@ -169,16 +157,21 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-        categories={DEAL_CATEGORIES}
-      />
+      <Header categories={DEAL_CATEGORIES} />
+
+      {/* Enhanced Search */}
+      <div className="border-b bg-muted/30">
+        <div className="container py-6">
+          <EnhancedSearch 
+            filters={filters}
+            onFiltersChange={setFilters}
+            categories={DEAL_CATEGORIES}
+          />
+        </div>
+      </div>
 
       {/* Hero Section */}
-      {!searchQuery && selectedCategory === 'All Categories' && (
+      {!searchStats.hasFilters && (
         <section className="relative py-12 lg:py-20 overflow-hidden">
           <div className="container px-4">
             <div className="grid lg:grid-cols-2 gap-8 items-center">
@@ -278,12 +271,14 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
               <h2 className="text-2xl font-bold">
-                {searchQuery || selectedCategory !== 'All Categories' 
-                  ? `Found ${filteredDeals.length} deals` 
+                {searchStats.hasFilters
+                  ? `Found ${searchStats.filtered} of ${searchStats.total} deals` 
                   : 'Latest Deals'}
               </h2>
               <p className="text-muted-foreground">
-                {searchQuery && `Search results for "${searchQuery}"`}
+                {searchStats.hasFilters && searchStats.activeFilters > 0 && (
+                  <span>{searchStats.activeFilters} filter{searchStats.activeFilters === 1 ? '' : 's'} applied</span>
+                )}
               </p>
             </div>
 
@@ -305,7 +300,7 @@ const Index = () => {
           </div>
 
           {/* Sponsored Offers */}
-          {sponsoredOffers.length > 0 && !searchQuery && selectedCategory === 'All Categories' && (
+          {sponsoredOffers.length > 0 && !searchStats.hasFilters && (
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Badge variant="secondary">Sponsored</Badge>
@@ -343,21 +338,26 @@ const Index = () => {
                 />
               ))}
             </div>
-          ) : filteredDeals.length === 0 && (searchQuery || selectedCategory !== 'All Categories') ? (
+          ) : filteredDeals.length === 0 && searchStats.hasFilters ? (
             <div className="text-center py-12">
               <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No deals found</h3>
               <p className="text-muted-foreground mb-4">
-                Try adjusting your search or browse all categories
+                No deals match your current filters. Try adjusting your search criteria.
               </p>
               <Button
                 variant="outline"
-                onClick={() => {
-                  setSearchQuery('');
-                  setSelectedCategory('All Categories');
-                }}
+                onClick={() => setFilters({
+                  query: '',
+                  category: 'All Categories',
+                  location: '',
+                  discountMin: 0,
+                  discountMax: 100,
+                  expiresBy: null,
+                  sortBy: 'recent'
+                })}
               >
-                Clear Filters
+                Clear All Filters
               </Button>
             </div>
           ) : null}

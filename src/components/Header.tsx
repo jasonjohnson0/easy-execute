@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { 
-  Search, 
   User, 
   LogOut, 
   Store, 
@@ -17,24 +15,13 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from './AuthModal';
 import { ShareModal } from './ShareModal';
-import { CategoryFilter } from './CategoryFilter';
 import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
-  selectedCategory: string;
-  onCategoryChange: (category: string) => void;
   categories: string[];
 }
 
-export function Header({ 
-  searchQuery, 
-  onSearchChange, 
-  selectedCategory, 
-  onCategoryChange, 
-  categories 
-}: HeaderProps) {
+export function Header({ categories }: HeaderProps) {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -60,18 +47,8 @@ export function Header({
             </h1>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4 flex-1 max-w-2xl mx-8">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="Search deals, businesses..."
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-10 pr-4"
-              />
-            </div>
-          </div>
+          {/* Spacer for layout */}
+          <div className="flex-1"></div>
 
           {/* Desktop User Actions */}
           <div className="hidden md:flex items-center space-x-2">
@@ -156,18 +133,6 @@ export function Header({
           </Button>
         </div>
 
-        {/* Mobile Search */}
-        <div className="md:hidden px-4 pb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Search deals, businesses..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-10 pr-4"
-            />
-          </div>
-        </div>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
@@ -256,12 +221,6 @@ export function Header({
           </div>
         )}
 
-        {/* Category Filter */}
-        <CategoryFilter 
-          categories={categories}
-          selectedCategory={selectedCategory}
-          onCategoryChange={onCategoryChange}
-        />
       </header>
 
       {/* Modals */}

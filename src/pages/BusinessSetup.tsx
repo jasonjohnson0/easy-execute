@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Store } from 'lucide-react';
+import { ArrowLeft, Store, Upload, CheckCircle } from 'lucide-react';
+import { ProfileProgress } from '@/components/ProfileProgress';
 
 const BUSINESS_CATEGORIES = [
   'Restaurant',
@@ -33,8 +34,10 @@ export default function BusinessSetup() {
     description: user?.businessProfile?.description || '',
     category: user?.businessProfile?.category || '',
     address: user?.businessProfile?.address || '',
-    phone: user?.businessProfile?.phone || ''
+    phone: user?.businessProfile?.phone || '',
+    logo_url: user?.businessProfile?.logo_url || ''
   });
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,7 +108,7 @@ export default function BusinessSetup() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-3xl font-bold flex items-center gap-3">
               <Store className="w-8 h-8 text-primary" />
               Complete Your Business Profile
@@ -115,6 +118,12 @@ export default function BusinessSetup() {
             </p>
           </div>
         </div>
+
+        {/* Progress Indicator */}
+        <ProfileProgress 
+          business={formData}
+          className="mb-8"
+        />
 
         <Card>
           <CardHeader>
@@ -185,6 +194,80 @@ export default function BusinessSetup() {
                   placeholder="Enter your business phone number"
                   type="tel"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="logo">Business Logo/Image (Optional)</Label>
+                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
+                  {formData.logo_url ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src={formData.logo_url} 
+                          alt="Business logo preview" 
+                          className="w-16 h-16 object-cover rounded-lg border"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 text-success">
+                            <CheckCircle className="w-4 h-4" />
+                            <span className="text-sm font-medium">Logo uploaded successfully</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Your logo will help customers recognize your business
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setFormData({ ...formData, logo_url: '' })}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Upload your business logo or image
+                      </p>
+                      <p className="text-xs text-muted-foreground mb-4">
+                        JPG, PNG or GIF up to 5MB. Recommended: 300x300px
+                      </p>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        id="logo-upload"
+                        disabled={isUploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            // For now, we'll just show a placeholder URL
+                            // In a real app, you'd upload to Supabase Storage
+                            setIsUploading(true);
+                            setTimeout(() => {
+                              setFormData({ 
+                                ...formData, 
+                                logo_url: URL.createObjectURL(file)
+                              });
+                              setIsUploading(false);
+                            }, 1500);
+                          }
+                        }}
+                      />
+                      <Button
+                        variant="outline"
+                        className="gap-2"
+                        disabled={isUploading}
+                        onClick={() => document.getElementById('logo-upload')?.click()}
+                      >
+                        <Upload className="w-4 h-4" />
+                        {isUploading ? 'Uploading...' : 'Choose File'}
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <Button
