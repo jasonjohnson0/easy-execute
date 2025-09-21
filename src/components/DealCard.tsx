@@ -11,6 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { useFavoritesQuery } from "@/hooks/useFavoritesQuery";
 import { useAuth } from "@/hooks/useAuth";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
+import { DealDetailsModal } from "@/components/DealDetailsModal";
 
 interface DealCardProps {
   deal: Deal | (SponsoredOffer & { businesses?: { name: string; category?: string } });
@@ -23,6 +24,7 @@ export function DealCard({ deal, layout = 'grid', isSponsored = false }: DealCar
   const { isFavorited, toggleFavorite, isToggling } = useFavoritesQuery();
   const { addRecentlyViewed } = useRecentlyViewed();
   const [printing, setPrinting] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const isSponsoredOffer = (deal: Deal | (SponsoredOffer & { businesses?: { name: string } })): deal is SponsoredOffer & { businesses?: { name: string } } => {
     return 'offer_type' in deal;
@@ -69,11 +71,7 @@ export function DealCard({ deal, layout = 'grid', isSponsored = false }: DealCar
   const handleViewDetails = () => {
     updateViewCount();
     addRecentlyViewed(deal);
-    // Could open a modal or navigate to deal details
-    toast({
-      title: "Deal Details",
-      description: `Viewing details for: ${deal.title}`,
-    });
+    setShowDetailsModal(true);
   };
 
   const handlePrint = async () => {
@@ -323,6 +321,13 @@ export function DealCard({ deal, layout = 'grid', isSponsored = false }: DealCar
             )}
           </div>
         </CardFooter>
+
+        <DealDetailsModal
+          deal={deal}
+          open={showDetailsModal}
+          onOpenChange={setShowDetailsModal}
+          isSponsored={isSponsored}
+        />
       </Card>
     );
   }
@@ -399,6 +404,13 @@ export function DealCard({ deal, layout = 'grid', isSponsored = false }: DealCar
           )}
         </div>
       </CardContent>
+
+      <DealDetailsModal
+        deal={deal}
+        open={showDetailsModal}
+        onOpenChange={setShowDetailsModal}
+        isSponsored={isSponsored}
+      />
     </Card>
   );
 }
