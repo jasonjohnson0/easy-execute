@@ -449,6 +449,25 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      get_deals_with_safe_business_info: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          business_category: string
+          business_id: string
+          business_name: string
+          created_at: string
+          description: string
+          discount_type: string
+          discount_value: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          prints: number
+          terms: string
+          title: string
+          views: number
+        }[]
+      }
       get_platform_analytics: {
         Args: { end_date?: string; start_date?: string }
         Returns: Json

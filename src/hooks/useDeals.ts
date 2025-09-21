@@ -13,20 +13,31 @@ export function useDeals() {
         return mockDeals;
       }
 
-      const { data, error } = await (supabase as any)
-        .from('deals')
-        .select(`
-          *,
-          businesses (
-            name,
-            category
-          )
-        `)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
+      // Use secure RPC function instead of direct join to protect business data
+      const { data, error } = await supabase
+        .rpc('get_deals_with_safe_business_info');
 
       if (error) throw error;
-      return data || [];
+
+      // Transform the data to match the expected Deal type with businesses object
+      return (data || []).map(deal => ({
+        id: deal.id,
+        business_id: deal.business_id,
+        title: deal.title,
+        description: deal.description,
+        discount_value: deal.discount_value,
+        discount_type: deal.discount_type as 'percentage' | 'fixed' | 'bogo',
+        terms: deal.terms,
+        expires_at: deal.expires_at,
+        is_active: deal.is_active,
+        views: deal.views,
+        prints: deal.prints,
+        created_at: deal.created_at,
+        businesses: {
+          name: deal.business_name,
+          category: deal.business_category
+        }
+      }));
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
