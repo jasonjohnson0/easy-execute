@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import type { Business } from '@/types/database';
+import { authRateLimiter } from '@/lib/security/sanitization';
+import { updateBusinessData, logBusinessAccess } from '@/lib/security/businessData';
 
 interface AuthUser extends User {
   businessProfile?: Business;
@@ -152,10 +154,23 @@ export function useAuth() {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    // Rate limiting check
+    if (!authRateLimiter.isAllowed(email)) {
+      return { error: new Error('Too many login attempts. Please try again in 5 minutes.') };
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+
+    if (error) {
+      console.warn(`Failed login attempt for ${email}:`, error.message);
+    } else {
+      // Reset rate limiter on successful login
+      authRateLimiter.reset(email);
+    }
+
     return { error };
   };
 
@@ -179,22 +194,28 @@ export function useAuth() {
 
   const createBusinessProfile = async (user: User, businessData: any, email: string) => {
     try {
+      // Sanitize business data before insertion
+      const sanitizedData = {
+        id: user.id,
+        name: businessData.name,
+        email: email,
+        phone: businessData.phone,
+        address: businessData.address,
+        category: businessData.category,
+        description: businessData.description
+      };
+
       const { error } = await (supabase as any)
         .from('businesses')
-        .insert({
-          id: user.id,
-          name: businessData.name,
-          email: email,
-          phone: businessData.phone,
-          address: businessData.address,
-          category: businessData.category,
-          description: businessData.description
-        });
+        .insert(sanitizedData);
 
       if (error) {
         console.error('Error creating business profile:', error);
         throw new Error('Failed to create business profile');
       }
+
+      // Log the business profile creation
+      await logBusinessAccess(user.id, 'PROFILE_CREATED');
     } catch (error) {
       console.error('Error in createBusinessProfile:', error);
       throw error;

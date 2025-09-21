@@ -2,8 +2,12 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { registerServiceWorker } from '@/lib/pwa/install';
+import { applySecurityHeaders } from '@/lib/security/headers';
 import App from './App.tsx';
 import './index.css';
+
+// Apply security headers
+applySecurityHeaders();
 
 // Register service worker for PWA functionality
 registerServiceWorker();

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { sanitizeInput, sanitizeHTML, sanitizeEmail, sanitizePhone } from '@/lib/security/sanitization';
 
 // Business categories from existing code
 const BUSINESS_CATEGORIES = [
@@ -17,42 +18,37 @@ const validateCoordinate = (coord: number, type: 'lat' | 'lng') => {
   return coord >= -180 && coord <= 180;
 };
 
-const sanitizeHTML = (text: string) => {
-  // Basic HTML sanitization - remove script tags and other dangerous content
-  return text.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-             .replace(/<[^>]*>/g, '')
-             .trim();
-};
-
 // Auth validation schemas
 export const signInSchema = z.object({
   email: z.string()
     .email('Please enter a valid email address')
     .toLowerCase()
-    .transform(sanitizeHTML),
+    .transform(sanitizeEmail),
   password: z.string()
-    .min(6, 'Password must be at least 6 characters'),
+    .min(6, 'Password must be at least 6 characters')
+    .transform(sanitizeInput),
 });
 
 export const signUpSchema = z.object({
   email: z.string()
     .email('Please enter a valid email address')
     .toLowerCase()
-    .transform(sanitizeHTML),
+    .transform(sanitizeEmail),
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain at least one uppercase letter, one lowercase letter, and one number'),
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain at least one uppercase letter, one lowercase letter, and one number')
+    .transform(sanitizeInput),
 });
 
 export const businessSignUpSchema = signUpSchema.extend({
   businessName: z.string()
     .min(2, 'Business name must be at least 2 characters')
     .max(100, 'Business name must be less than 100 characters')
-    .transform(sanitizeHTML),
+    .transform(sanitizeInput),
   businessEmail: z.string()
     .email('Please enter a valid business email')
     .toLowerCase()
-    .transform(sanitizeHTML),
+    .transform(sanitizeEmail),
 });
 
 // Business profile schema
@@ -60,11 +56,11 @@ export const businessProfileSchema = z.object({
   name: z.string()
     .min(2, 'Business name must be at least 2 characters')
     .max(100, 'Business name must be less than 100 characters')
-    .transform(sanitizeHTML),
+    .transform(sanitizeInput),
   email: z.string()
     .email('Please enter a valid email address')
     .toLowerCase()
-    .transform(sanitizeHTML),
+    .transform(sanitizeEmail),
   description: z.string()
     .min(10, 'Description must be at least 10 characters')
     .max(500, 'Description must be less than 500 characters')
@@ -76,11 +72,11 @@ export const businessProfileSchema = z.object({
   address: z.string()
     .min(10, 'Please enter a complete address')
     .max(200, 'Address must be less than 200 characters')
-    .transform(sanitizeHTML),
+    .transform(sanitizeInput),
   phone: z.string()
     .min(10, 'Please enter a valid phone number')
     .refine(validatePhone, 'Please enter a valid phone number')
-    .transform((phone) => phone.replace(/[\s\-\(\)]/g, '')),
+    .transform(sanitizePhone),
   logo_url: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
 });
 
@@ -89,7 +85,7 @@ export const dealSchema = z.object({
   title: z.string()
     .min(5, 'Deal title must be at least 5 characters')
     .max(100, 'Deal title must be less than 100 characters')
-    .transform(sanitizeHTML),
+    .transform(sanitizeInput),
   description: z.string()
     .min(10, 'Description must be at least 10 characters')
     .max(500, 'Description must be less than 500 characters')
@@ -98,7 +94,8 @@ export const dealSchema = z.object({
     errorMap: () => ({ message: 'Please select a discount type' })
   }),
   discount_value: z.string()
-    .min(1, 'Please enter a discount value'),
+    .min(1, 'Please enter a discount value')
+    .transform(sanitizeInput),
   terms: z.string()
     .min(5, 'Terms must be at least 5 characters')
     .max(300, 'Terms must be less than 300 characters')
