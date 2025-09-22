@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Copy, Share2, Check, Facebook, Twitter, MessageCircle, Mail, QrCode } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Deal, SponsoredOffer } from '@/types/database';
+import { useAnalyticsTracking } from '@/hooks/useAnalyticsTracking';
+import { useAnalytics } from '@/lib/analytics/tracker';
 import QRCode from 'qrcode';
 
 interface DealShareModalProps {
@@ -18,13 +20,18 @@ interface DealShareModalProps {
 export function DealShareModal({ open, onOpenChange, deal }: DealShareModalProps) {
   const [copied, setCopied] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
-
-  const dealUrl = `${window.location.origin}/?deal=${deal.id}`;
+  
+  const { trackShareClick } = useAnalyticsTracking();
+  const analytics = useAnalytics();
+  
+  // Create different URLs for QR codes vs sharing links to prevent double tracking
+  const shareUrl = `${window.location.origin}/?deal=${deal.id}`;
+  const qrCodeUrl_internal = `${window.location.origin}/?deal=${deal.id}&qr=true`;
 
   // Generate QR code when modal opens
   useEffect(() => {
     if (open && !qrCodeUrl) {
-      QRCode.toDataURL(dealUrl, {
+      QRCode.toDataURL(qrCodeUrl_internal, {
         width: 200,
         margin: 2,
         color: {
@@ -35,7 +42,7 @@ export function DealShareModal({ open, onOpenChange, deal }: DealShareModalProps
         .then(setQrCodeUrl)
         .catch(console.error);
     }
-  }, [open, dealUrl, qrCodeUrl]);
+  }, [open, qrCodeUrl_internal, qrCodeUrl]);
 
   const getDiscountText = () => {
     if (deal.discount_type === 'percentage') {
@@ -51,8 +58,15 @@ export function DealShareModal({ open, onOpenChange, deal }: DealShareModalProps
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(`${shareMessage}\n\n${dealUrl}`);
+      await navigator.clipboard.writeText(`${shareMessage}\n\n${shareUrl}`);
       setCopied(true);
+      
+      // Track copy link action
+      analytics.track('link_copied', {
+        dealId: deal.id,
+        dealTitle: deal.title,
+        businessId: deal.business_id
+      });
       
       toast({
         title: "Link copied!",
@@ -71,31 +85,38 @@ export function DealShareModal({ open, onOpenChange, deal }: DealShareModalProps
 
   const shareToSocial = (platform: 'twitter' | 'facebook' | 'whatsapp' | 'email') => {
     const encodedMessage = encodeURIComponent(shareMessage);
-    const encodedUrl = encodeURIComponent(dealUrl);
+    const encodedUrl = encodeURIComponent(shareUrl);
 
-    let shareUrl = '';
+    let socialShareUrl = '';
     
     switch (platform) {
       case 'twitter':
-        shareUrl = `https://twitter.com/intent/tweet?text=${encodedMessage}&url=${encodedUrl}`;
+        socialShareUrl = `https://twitter.com/intent/tweet?text=${encodedMessage}&url=${encodedUrl}`;
         break;
       case 'facebook':
-        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedMessage}`;
+        socialShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedMessage}`;
         break;
       case 'whatsapp':
-        shareUrl = `https://wa.me/?text=${encodedMessage}%20${encodedUrl}`;
+        socialShareUrl = `https://wa.me/?text=${encodedMessage}%20${encodedUrl}`;
         break;
       case 'email':
         const subject = encodeURIComponent(`Great Deal: ${deal.title}`);
-        const body = encodeURIComponent(`${shareMessage}\n\nView this deal: ${dealUrl}`);
-        shareUrl = `mailto:?subject=${subject}&body=${body}`;
+        const body = encodeURIComponent(`${shareMessage}\n\nView this deal: ${shareUrl}`);
+        socialShareUrl = `mailto:?subject=${subject}&body=${body}`;
         break;
     }
 
+    // Track share click
+    if (deal.business_id) {
+      trackShareClick(deal.id, deal.business_id, platform);
+    }
+    
+    analytics.dealShare(deal.id, deal.title, platform);
+
     if (platform === 'email') {
-      window.location.href = shareUrl;
+      window.location.href = socialShareUrl;
     } else {
-      window.open(shareUrl, '_blank', 'width=600,height=400');
+      window.open(socialShareUrl, '_blank', 'width=600,height=400');
     }
   };
 
@@ -141,8 +162,8 @@ export function DealShareModal({ open, onOpenChange, deal }: DealShareModalProps
               <div className="space-y-2">
                 <label className="text-sm font-medium">Share Link</label>
                 <div className="flex gap-2">
-                  <Input
-                    value={dealUrl}
+                   <Input
+                    value={shareUrl}
                     readOnly
                     className="flex-1"
                   />
@@ -216,10 +237,13 @@ export function DealShareModal({ open, onOpenChange, deal }: DealShareModalProps
                   variant="default"
                   onClick={async () => {
                     try {
+                      // Track native share
+                      analytics.dealShare(deal.id, deal.title, 'native_share');
+                      
                       await navigator.share({
                         title: deal.title,
                         text: shareMessage,
-                        url: dealUrl,
+                        url: shareUrl,
                       });
                     } catch (err) {
                       // User cancelled or error occurred
@@ -253,7 +277,7 @@ export function DealShareModal({ open, onOpenChange, deal }: DealShareModalProps
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground font-mono break-all px-4">
-                  {dealUrl}
+                  {qrCodeUrl_internal}
                 </div>
               </div>
             </TabsContent>

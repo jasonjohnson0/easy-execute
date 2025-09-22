@@ -11,6 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { useFavoritesQuery } from "@/hooks/useFavoritesQuery";
 import { useAuth } from "@/hooks/useAuth";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
+import { useAnalytics } from "@/lib/analytics/tracker";
 import { DealDetailsModal } from "@/components/DealDetailsModal";
 
 interface DealCardProps {
@@ -23,6 +24,7 @@ export function DealCard({ deal, layout = 'grid', isSponsored = false }: DealCar
   const { user } = useAuth();
   const { isFavorited, toggleFavorite, isToggling } = useFavoritesQuery();
   const { addRecentlyViewed } = useRecentlyViewed();
+  const analytics = useAnalytics();
   const [printing, setPrinting] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
@@ -33,6 +35,8 @@ export function DealCard({ deal, layout = 'grid', isSponsored = false }: DealCar
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering parent click events
     if (!isSponsoredOffer(deal)) {
+      const action = isFavorited(deal.id) ? 'remove' : 'add';
+      analytics.dealFavorite(deal.id, deal.title, action);
       toggleFavorite(deal.id);
     }
   };
@@ -71,6 +75,10 @@ export function DealCard({ deal, layout = 'grid', isSponsored = false }: DealCar
   const handleViewDetails = () => {
     updateViewCount();
     addRecentlyViewed(deal);
+    
+    // Track deal view
+    analytics.dealView(deal.id, deal.title, deal.business_id || '');
+    
     setShowDetailsModal(true);
   };
 
@@ -79,6 +87,9 @@ export function DealCard({ deal, layout = 'grid', isSponsored = false }: DealCar
     
     try {
       await updatePrintCount();
+      
+      // Track deal print
+      analytics.dealPrint(deal.id, deal.title, deal.business_id || '');
       
       // Create print window with deal content
       const printWindow = window.open('', '_blank');

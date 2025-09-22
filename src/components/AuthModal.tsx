@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Store, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useAnalytics } from '@/lib/analytics/tracker';
 import { DEAL_CATEGORIES } from '@/data/mockData';
 
 interface AuthModalProps {
@@ -29,6 +30,7 @@ export function AuthModal({
   onUserTypeChange 
 }: AuthModalProps) {
   const { signIn, signUp } = useAuth();
+  const analytics = useAnalytics();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [referralCode, setReferralCode] = useState('');
@@ -67,6 +69,11 @@ export function AuthModal({
           setError(error.message);
           return;
         }
+        
+        // Track successful sign in
+        analytics.track('user_signin', {
+          userType: userType, // This might not always be accurate for existing users, but it's our best guess
+        });
       } else {
         // Sign up
         const { data, error } = await signUp(
@@ -79,6 +86,23 @@ export function AuthModal({
         if (error) {
           setError(error.message);
           return;
+        }
+
+        // Track successful signup
+        if (data.user) {
+          analytics.identify(data.user.id, userType === 'business' ? 'business_owner' : 'deal_hunter', {
+            email,
+            userType,
+            hasReferralCode: !!referralCode,
+            businessName: userType === 'business' ? businessData.name : undefined,
+            businessCategory: userType === 'business' ? businessData.category : undefined
+          });
+          
+          analytics.track('user_signup', {
+            userType,
+            hasReferralCode: !!referralCode,
+            businessCategory: userType === 'business' ? businessData.category : undefined
+          });
         }
 
         // Show success message for email confirmation

@@ -19,6 +19,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useAnalytics } from '@/lib/analytics/tracker';
 import { supabase } from '@/integrations/supabase/client';
 import { USE_MOCK_DEALS } from '@/data/mockData';
 import { toast } from '@/hooks/use-toast';
@@ -31,6 +32,7 @@ export default function CreateDeal() {
   const { user, loading: authLoading, profileLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const analytics = useAnalytics();
   const fromSetup = searchParams.get('from') === 'setup';
   const fromWelcome = searchParams.get('from') === 'welcome';
   const [loading, setLoading] = useState(false);
@@ -118,8 +120,10 @@ export default function CreateDeal() {
     setLoading(true);
 
     try {
+      let dealId = 'mock-deal-id'; // Default for mock mode
+      
       if (!USE_MOCK_DEALS) {
-        const { error } = await (supabase as any)
+        const { data, error } = await (supabase as any)
           .from('deals')
           .insert({
             business_id: user.businessProfile.id,
@@ -130,10 +134,21 @@ export default function CreateDeal() {
             terms: formData.terms,
             expires_at: formData.expires_at,
             is_active: true
-          });
+          })
+          .select('id')
+          .single();
 
         if (error) throw error;
+        dealId = data?.id || dealId;
       }
+
+      // Track deal creation
+      analytics.dealCreated(
+        dealId,
+        formData.title,
+        formData.discount_type,
+        formData.discount_value
+      );
 
       toast({
         title: "Deal Created!",

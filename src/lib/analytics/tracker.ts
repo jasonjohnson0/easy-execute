@@ -67,6 +67,9 @@ class AnalyticsTracker {
     if (navigator.onLine) {
       this.sendEvents();
     }
+    
+    // Also log individual events for debugging
+    console.log(`🔍 Analytics: ${event}`, properties);
   }
 
   // Set user properties
@@ -219,9 +222,11 @@ class AnalyticsTracker {
     if (this.events.length === 0) return;
 
     try {
-      // In a real implementation, you'd send to your analytics backend
-      // For now, we'll just log them
-      console.log('Analytics Events:', this.events);
+      // Send events to console for debugging
+      console.log('📊 Analytics Events:', this.events);
+      
+      // In production, send to your analytics backend
+      // Example: await fetch('/api/analytics', { method: 'POST', body: JSON.stringify(this.events) });
       
       // Clear sent events
       this.events = [];

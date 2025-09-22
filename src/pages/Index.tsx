@@ -19,6 +19,8 @@ import { useDeals } from '@/hooks/useDeals';
 import { useSponsoredOffers } from '@/hooks/useSponsoredOffers';
 import { useBusinessCount } from '@/hooks/useBusinessCount';
 import { useActiveDealsCount } from '@/hooks/useActiveDealsCount';
+import { useAnalyticsTracking } from '@/hooks/useAnalyticsTracking';
+import { useAnalytics } from '@/lib/analytics/tracker';
 import { DEAL_CATEGORIES } from '@/data/mockData';
 import heroImage from '@/assets/hero-image.jpg';
 
@@ -41,6 +43,10 @@ const Index = () => {
 
   // Enhanced search functionality
   const { filters, setFilters, filteredDeals, searchStats } = useEnhancedSearch(deals);
+  
+  // Analytics tracking
+  const { trackQRScan } = useAnalyticsTracking();
+  const analytics = useAnalytics();
 
   // Combined loading state
   const loading = dealsLoading || sponsoredLoading || businessCountLoading || activeDealsCountLoading;
@@ -50,6 +56,7 @@ const Index = () => {
   useEffect(() => {
     const dealId = searchParams.get('deal');
     const refCode = searchParams.get('ref');
+    const fromQR = searchParams.get('qr') === 'true';
     
     // Store referral code in localStorage for signup process
     if (refCode) {
@@ -59,6 +66,20 @@ const Index = () => {
     if (dealId && deals.length > 0) {
       const deal = deals.find(d => d.id === dealId);
       if (deal) {
+        // Track QR scan if this came from a QR code
+        if (fromQR && deal.business_id) {
+          trackQRScan(dealId, deal.business_id);
+        }
+        
+        // Track page view for analytics
+        analytics.page('Deal View', {
+          dealId,
+          dealTitle: deal.title,
+          businessId: deal.business_id,
+          fromQR,
+          hasRefCode: !!refCode
+        });
+        
         if (user) {
           // User is authenticated, show deal immediately
           setSelectedDeal(deal);
@@ -77,7 +98,7 @@ const Index = () => {
       // Direct referral link without specific deal
       setShowAuthModal(true);
     }
-  }, [deals, user, searchParams, setSearchParams]);
+  }, [deals, user, searchParams, setSearchParams, trackQRScan, analytics]);
 
   // Handle showing deal after authentication
   useEffect(() => {
