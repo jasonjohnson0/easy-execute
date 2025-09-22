@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { usePlatformUsers, useAdminManagement } from '@/hooks/usePlatformData';
-import { Users, Shield, Plus, Trash2 } from 'lucide-react';
+import { UserEditor } from '@/components/admin/UserEditor';
+import { Users, Shield, Plus, Edit, Ban, UserX, User, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 
 export function UserManagement() {
@@ -17,6 +18,8 @@ export function UserManagement() {
   const { toast } = useToast();
   const [newAdminEmail, setNewAdminEmail] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [isUserEditorOpen, setIsUserEditorOpen] = useState(false);
 
   const handleAddAdmin = async () => {
     if (!newAdminEmail.trim()) {
@@ -65,6 +68,36 @@ export function UserManagement() {
         variant: "destructive",
       });
     }
+  };
+
+  const openUserEditor = (user: any) => {
+    setSelectedUser(user);
+    setIsUserEditorOpen(true);
+  };
+
+  const getUserStatusBadge = (user: any) => {
+    if (user.status === 'banned') {
+      return (
+        <Badge variant="destructive" className="gap-1">
+          <Ban className="w-3 h-3" />
+          Banned
+        </Badge>
+      );
+    }
+    if (user.status === 'disabled') {
+      return (
+        <Badge variant="secondary" className="gap-1">
+          <UserX className="w-3 h-3" />
+          Disabled
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="outline" className="gap-1">
+        <User className="w-3 h-3" />
+        Active
+      </Badge>
+    );
   };
 
   if (error) {
@@ -130,6 +163,7 @@ export function UserManagement() {
                 <TableRow>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Account Type</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Last Login</TableHead>
@@ -148,6 +182,15 @@ export function UserManagement() {
                         {user.role === 'admin' && <Shield className="h-3 w-3" />}
                         {user.role}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {getUserStatusBadge(user)}
+                      {user.banned_until && user.status === 'banned' && (
+                        <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          Until: {format(new Date(user.banned_until), 'MMM dd, yyyy')}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">
@@ -169,17 +212,28 @@ export function UserManagement() {
                       }
                     </TableCell>
                     <TableCell>
-                      {user.role === 'admin' && (
+                      <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleRemoveAdmin(user.email)}
-                          className="gap-1 text-destructive hover:text-destructive"
+                          onClick={() => openUserEditor(user)}
+                          className="gap-1"
                         >
-                          <Trash2 className="h-3 w-3" />
-                          Remove Admin
+                          <Edit className="h-3 w-3" />
+                          Edit
                         </Button>
-                      )}
+                        {user.role === 'admin' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRemoveAdmin(user.email)}
+                            className="gap-1 text-destructive hover:text-destructive"
+                          >
+                            <Shield className="h-3 w-3" />
+                            Remove Admin
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -188,6 +242,19 @@ export function UserManagement() {
           </div>
         )}
       </CardContent>
+
+      {/* User Editor Modal */}
+      <UserEditor
+        user={selectedUser}
+        open={isUserEditorOpen}
+        onOpenChange={(open) => {
+          setIsUserEditorOpen(open);
+          if (!open) {
+            setSelectedUser(null);
+            refetch(); // Refresh data when editor closes
+          }
+        }}
+      />
     </Card>
   );
 }

@@ -549,6 +549,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_status: {
+        Row: {
+          ban_reason: string | null
+          banned_until: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ban_reason?: string | null
+          banned_until?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ban_reason?: string | null
+          banned_until?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -556,6 +589,22 @@ export type Database = {
     Functions: {
       add_admin_role: {
         Args: { target_email: string }
+        Returns: boolean
+      }
+      admin_ban_user: {
+        Args: {
+          ban_duration_hours?: number
+          reason?: string
+          target_user_id: string
+        }
+        Returns: boolean
+      }
+      admin_disable_user: {
+        Args: { reason?: string; target_user_id: string }
+        Returns: boolean
+      }
+      admin_unban_user: {
+        Args: { target_user_id: string }
         Returns: boolean
       }
       calculate_distance: {

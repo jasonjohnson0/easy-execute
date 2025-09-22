@@ -15,6 +15,9 @@ interface PlatformUser {
     subscription_status: string;
     subscription_plan: string;
   } | null;
+  status?: string;
+  banned_until?: string;
+  ban_reason?: string;
 }
 
 interface PlatformBusiness {
