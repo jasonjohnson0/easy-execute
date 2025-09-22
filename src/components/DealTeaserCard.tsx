@@ -1,15 +1,17 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Clock, Eye, Zap } from 'lucide-react';
+import { MapPin, Clock, Eye, Zap, Star } from 'lucide-react';
+import type { SponsoredOffer } from '@/types/database';
 
 interface DealTeaserCardProps {
   category: string;
   layout?: 'grid' | 'coupon';
   onSignUp: () => void;
+  sponsoredData?: SponsoredOffer;
 }
 
-export function DealTeaserCard({ category, layout = 'grid', onSignUp }: DealTeaserCardProps) {
+export function DealTeaserCard({ category, layout = 'grid', onSignUp, sponsoredData }: DealTeaserCardProps) {
   if (layout === 'coupon') {
     return (
       <Card className="relative overflow-hidden border-2 border-dashed border-muted-foreground/30 bg-muted/10">
@@ -75,8 +77,17 @@ export function DealTeaserCard({ category, layout = 'grid', onSignUp }: DealTeas
       
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <div className="h-5 w-3/4 bg-muted animate-pulse rounded" />
-          <div className="h-4 w-1/2 bg-muted animate-pulse rounded" />
+          {sponsoredData ? (
+            <>
+              <h3 className="font-semibold text-lg text-foreground/80">{sponsoredData.title}</h3>
+              <p className="text-sm text-muted-foreground line-clamp-2">{sponsoredData.description}</p>
+            </>
+          ) : (
+            <>
+              <div className="h-5 w-3/4 bg-muted animate-pulse rounded" />
+              <div className="h-4 w-1/2 bg-muted animate-pulse rounded" />
+            </>
+          )}
         </div>
         
         <div className="flex items-center gap-4 text-sm text-muted-foreground">

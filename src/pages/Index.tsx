@@ -22,7 +22,7 @@ import { useBusinessCount } from '@/hooks/useBusinessCount';
 import { useActiveDealsCount } from '@/hooks/useActiveDealsCount';
 import { useAnalyticsTracking } from '@/hooks/useAnalyticsTracking';
 import { useAnalytics } from '@/lib/analytics/tracker';
-import { AnalyticsTestPanel } from '@/components/AnalyticsTestPanel';
+import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { DEAL_CATEGORIES } from '@/data/mockData';
 import heroImage from '@/assets/hero-image.jpg';
 
@@ -340,88 +340,101 @@ const Index = () => {
           {/* Trending Section - Authenticated users only */}
           {!searchStats.hasFilters && user && <TrendingSection deals={deals} />}
 
-          {/* Sponsored Offers - Authenticated users only */}
-          {sponsoredOffers.length > 0 && !searchStats.hasFilters && user && (
+          {/* Sponsored Offers - Show to all users as teasers */}
+          {sponsoredOffers.length > 0 && !searchStats.hasFilters && (
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Badge variant="secondary">Sponsored</Badge>
                 Featured Offers
+                {!user && <Badge variant="outline" className="ml-2">Subscribe to Access</Badge>}
               </h3>
               <div className={`grid gap-6 ${
                 layout === 'grid' 
                   ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
                   : 'grid-cols-1 lg:grid-cols-2'
               }`}>
-                {sponsoredOffers.map((offer) => (
-                  <DealCard
-                    key={offer.id}
-                    deal={offer}
-                    layout={layout}
-                    isSponsored={true}
-                  />
+                {sponsoredOffers.slice(0, 3).map((offer) => (
+                  user ? (
+                    <DealCard
+                      key={offer.id}
+                      deal={offer}
+                      layout={layout}
+                      isSponsored={true}
+                    />
+                  ) : (
+                    <DealTeaserCard
+                      key={offer.id}
+                      category="Sponsored Offer"
+                      layout={layout}
+                      onSignUp={() => setShowAuthModal(true)}
+                      sponsoredData={offer}
+                    />
+                  )
                 ))}
               </div>
             </div>
           )}
 
-          {/* Regular Deals - Show based on authentication */}
-          {user ? (
-            /* Authenticated users see real deals */
-            filteredDeals.length > 0 ? (
+          {/* Regular Deals - Show based on authentication and subscription */}
+          <SubscriptionGate>
+            {user ? (
+              /* Authenticated users with subscription see real deals */
+              filteredDeals.length > 0 ? (
+                <div className={`grid gap-6 ${
+                  layout === 'grid' 
+                    ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
+                    : 'grid-cols-1 lg:grid-cols-2'
+                }`}>
+                  {filteredDeals.map((deal) => (
+                    <DealCard
+                      key={deal.id}
+                      deal={deal}
+                      layout={layout}
+                    />
+                  ))}
+                </div>
+              ) : filteredDeals.length === 0 && searchStats.hasFilters ? (
+                <div className="text-center py-12">
+                  <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No deals found</h3>
+                  <p className="text-muted-foreground mb-4">
+                    No deals match your current filters. Try adjusting your search criteria.
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => setFilters({
+                      query: '',
+                      category: 'All Categories',
+                      location: '',
+                      discountMin: 0,
+                      discountMax: 100,
+                      expiresBy: null,
+                      sortBy: 'recent'
+                    })}
+                  >
+                    Clear All Filters
+                  </Button>
+                </div>
+              ) : null
+            ) : (
+              /* Unauthenticated users see teaser cards */
               <div className={`grid gap-6 ${
                 layout === 'grid' 
                   ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
                   : 'grid-cols-1 lg:grid-cols-2'
               }`}>
-                {filteredDeals.map((deal) => (
-                  <DealCard
-                    key={deal.id}
-                    deal={deal}
+                {/* Show teaser cards based on available categories */}
+                {DEAL_CATEGORIES.slice(1, 7).map((category) => (
+                  <DealTeaserCard
+                    key={category}
+                    category={category}
                     layout={layout}
+                    onSignUp={() => setShowAuthModal(true)}
                   />
                 ))}
               </div>
-            ) : filteredDeals.length === 0 && searchStats.hasFilters ? (
-              <div className="text-center py-12">
-                <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No deals found</h3>
-                <p className="text-muted-foreground mb-4">
-                  No deals match your current filters. Try adjusting your search criteria.
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() => setFilters({
-                    query: '',
-                    category: 'All Categories',
-                    location: '',
-                    discountMin: 0,
-                    discountMax: 100,
-                    expiresBy: null,
-                    sortBy: 'recent'
-                  })}
-                >
-                  Clear All Filters
-                </Button>
-              </div>
-            ) : null
-          ) : (
-            /* Unauthenticated users see teaser cards */
-            <div className={`grid gap-6 ${
-              layout === 'grid' 
-                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
-                : 'grid-cols-1 lg:grid-cols-2'
-            }`}>
-              {/* Show teaser cards based on available categories */}
-              {DEAL_CATEGORIES.slice(1, 7).map((category) => (
-                <DealTeaserCard
-                  key={category}
-                  category={category}
-                  layout={layout}
-                  onSignUp={() => setShowAuthModal(true)}
-                />
-              ))}
-            </div>
-          )}
+            )}
+          </SubscriptionGate>
         </div>
       </section>
 

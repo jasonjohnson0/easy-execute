@@ -168,6 +168,18 @@ export function AuthModal({
             )}
 
             <TabsContent value="hunter" className="space-y-4 mt-0">
+              {mode === 'signup' && (
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
+                  <h3 className="font-semibold text-primary">Annual Membership - $30/year</h3>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li>• Unlimited access to all local deals</li>
+                    <li>• Printable coupons and instant savings</li>
+                    <li>• Support local businesses in your community</li>
+                    <li>• <strong className="text-green-600">$2 off first payment for early adopters!</strong></li>
+                  </ul>
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
