@@ -10,6 +10,7 @@ import { AuthModal } from '@/components/AuthModal';
 import { WelcomeModal } from '@/components/WelcomeModal';
 import { DealDetailsModal } from '@/components/DealDetailsModal';
 import { EnhancedSearch } from '@/components/EnhancedSearch';
+import { DealTeaserCard } from '@/components/DealTeaserCard';
 import { RecentlyViewedSection } from '@/components/RecentlyViewedSection';
 import { TrendingSection } from '@/components/TrendingSection';
 import { DealSkeletonGrid } from '@/components/ui/deal-skeleton';
@@ -132,11 +133,12 @@ const Index = () => {
         
         <div className="border-b bg-muted/30">
           <div className="container py-6">
-            <EnhancedSearch 
-              filters={filters}
-              onFiltersChange={setFilters}
-              categories={DEAL_CATEGORIES}
-            />
+          <EnhancedSearch 
+            filters={filters}
+            onFiltersChange={setFilters}
+            categories={DEAL_CATEGORIES}
+            onShowSignUp={() => setShowAuthModal(true)}
+          />
           </div>
         </div>
 
@@ -165,6 +167,7 @@ const Index = () => {
             filters={filters}
             onFiltersChange={setFilters}
             categories={DEAL_CATEGORIES}
+            onShowSignUp={() => setShowAuthModal(true)}
           />
         </div>
       </div>
@@ -280,13 +283,23 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
               <h2 className="text-2xl font-bold">
-                {searchStats.hasFilters
-                  ? `Found ${searchStats.filtered} of ${searchStats.total} deals` 
-                  : 'Latest Deals'}
+                {user ? (
+                  searchStats.hasFilters
+                    ? `Found ${searchStats.filtered} of ${searchStats.total} deals` 
+                    : 'Latest Deals'
+                ) : (
+                  searchStats.hasFilters
+                    ? `${searchStats.filtered} deals match your search`
+                    : 'Exclusive Local Deals Available'
+                )}
               </h2>
               <p className="text-muted-foreground">
-                {searchStats.hasFilters && searchStats.activeFilters > 0 && (
-                  <span>{searchStats.activeFilters} filter{searchStats.activeFilters === 1 ? '' : 's'} applied</span>
+                {user ? (
+                  searchStats.hasFilters && searchStats.activeFilters > 0 && (
+                    <span>{searchStats.activeFilters} filter{searchStats.activeFilters === 1 ? '' : 's'} applied</span>
+                  )
+                ) : (
+                  'Sign up to access hundreds of local deals and start saving today'
                 )}
               </p>
             </div>
@@ -308,14 +321,14 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Recently Viewed Section */}
-          {!searchStats.hasFilters && <RecentlyViewedSection />}
+          {/* Recently Viewed Section - Authenticated users only */}
+          {!searchStats.hasFilters && user && <RecentlyViewedSection />}
 
-          {/* Trending Section */}
-          {!searchStats.hasFilters && <TrendingSection deals={deals} />}
+          {/* Trending Section - Authenticated users only */}
+          {!searchStats.hasFilters && user && <TrendingSection deals={deals} />}
 
-          {/* Sponsored Offers */}
-          {sponsoredOffers.length > 0 && !searchStats.hasFilters && (
+          {/* Sponsored Offers - Authenticated users only */}
+          {sponsoredOffers.length > 0 && !searchStats.hasFilters && user && (
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Badge variant="secondary">Sponsored</Badge>
@@ -338,44 +351,64 @@ const Index = () => {
             </div>
           )}
 
-          {/* Regular Deals */}
-          {filteredDeals.length > 0 ? (
+          {/* Regular Deals - Show based on authentication */}
+          {user ? (
+            /* Authenticated users see real deals */
+            filteredDeals.length > 0 ? (
+              <div className={`grid gap-6 ${
+                layout === 'grid' 
+                  ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
+                  : 'grid-cols-1 lg:grid-cols-2'
+              }`}>
+                {filteredDeals.map((deal) => (
+                  <DealCard
+                    key={deal.id}
+                    deal={deal}
+                    layout={layout}
+                  />
+                ))}
+              </div>
+            ) : filteredDeals.length === 0 && searchStats.hasFilters ? (
+              <div className="text-center py-12">
+                <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No deals found</h3>
+                <p className="text-muted-foreground mb-4">
+                  No deals match your current filters. Try adjusting your search criteria.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => setFilters({
+                    query: '',
+                    category: 'All Categories',
+                    location: '',
+                    discountMin: 0,
+                    discountMax: 100,
+                    expiresBy: null,
+                    sortBy: 'recent'
+                  })}
+                >
+                  Clear All Filters
+                </Button>
+              </div>
+            ) : null
+          ) : (
+            /* Unauthenticated users see teaser cards */
             <div className={`grid gap-6 ${
               layout === 'grid' 
                 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
                 : 'grid-cols-1 lg:grid-cols-2'
             }`}>
-              {filteredDeals.map((deal) => (
-                <DealCard
-                  key={deal.id}
-                  deal={deal}
+              {/* Show teaser cards based on available categories */}
+              {DEAL_CATEGORIES.slice(1, 7).map((category) => (
+                <DealTeaserCard
+                  key={category}
+                  category={category}
                   layout={layout}
+                  onSignUp={() => setShowAuthModal(true)}
                 />
               ))}
             </div>
-          ) : filteredDeals.length === 0 && searchStats.hasFilters ? (
-            <div className="text-center py-12">
-              <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No deals found</h3>
-              <p className="text-muted-foreground mb-4">
-                No deals match your current filters. Try adjusting your search criteria.
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => setFilters({
-                  query: '',
-                  category: 'All Categories',
-                  location: '',
-                  discountMin: 0,
-                  discountMax: 100,
-                  expiresBy: null,
-                  sortBy: 'recent'
-                })}
-              >
-                Clear All Filters
-              </Button>
-            </div>
-          ) : null}
+          )}
         </div>
       </section>
 

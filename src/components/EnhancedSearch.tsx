@@ -8,8 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Calendar } from '@/components/ui/calendar';
 import { Separator } from '@/components/ui/separator';
-import { Search, Filter, MapPin, Percent, Calendar as CalendarIcon, X } from 'lucide-react';
+import { Search, Filter, MapPin, Percent, Calendar as CalendarIcon, X, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAuth } from '@/hooks/useAuth';
+import { useDealsCountSearch } from '@/hooks/useDealsCountSearch';
 
 export interface SearchFilters {
   query: string;
@@ -25,11 +27,16 @@ interface EnhancedSearchProps {
   filters: SearchFilters;
   onFiltersChange: (filters: SearchFilters) => void;
   categories: string[];
+  onShowSignUp?: () => void;
 }
 
-export function EnhancedSearch({ filters, onFiltersChange, categories }: EnhancedSearchProps) {
+export function EnhancedSearch({ filters, onFiltersChange, categories, onShowSignUp }: EnhancedSearchProps) {
+  const { user } = useAuth();
   const [showFilters, setShowFilters] = useState(false);
   const [discountRange, setDiscountRange] = useState([filters.discountMin, filters.discountMax]);
+  
+  // Get search counts for unauthenticated users
+  const { filteredCount, hasFilters, isAuthenticated } = useDealsCountSearch(filters);
 
   const updateFilters = (updates: Partial<SearchFilters>) => {
     onFiltersChange({ ...filters, ...updates });
@@ -216,6 +223,26 @@ export function EnhancedSearch({ filters, onFiltersChange, categories }: Enhance
           </PopoverContent>
         </Popover>
       </div>
+
+      {/* Search Results Teaser for Unauthenticated Users */}
+      {!isAuthenticated && hasFilters && onShowSignUp && (
+        <div className="bg-gradient-to-r from-primary/10 to-secondary/10 border-2 border-dashed border-primary/30 rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="font-semibold text-foreground">
+                {filteredCount} deal{filteredCount !== 1 ? 's' : ''} match your search
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Sign up to view exclusive local deals and save money
+              </p>
+            </div>
+            <Button onClick={onShowSignUp} className="gap-2">
+              <UserPlus className="w-4 h-4" />
+              Sign Up to See Deals
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Active Filters Display */}
       {activeFiltersCount > 0 && (
