@@ -3,18 +3,26 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
 export function useAdminAuth() {
+  console.log('useAdminAuth: Starting hook initialization');
+  
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  console.log('useAdminAuth: Hooks initialized, user:', !!user);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const checkAdminStatus = async () => {
       console.log('Checking admin status for user:', !!user, user?.id);
       
       if (!user) {
         console.log('No user found, setting isAdmin to false');
-        setIsAdmin(false);
-        setLoading(false);
+        if (isMounted) {
+          setIsAdmin(false);
+          setLoading(false);
+        }
         return;
       }
 
@@ -31,16 +39,26 @@ export function useAdminAuth() {
         }
         
         console.log('Admin check result:', data);
-        setIsAdmin(data || false);
+        if (isMounted) {
+          setIsAdmin(data || false);
+        }
       } catch (error) {
         console.error('Error checking admin status:', error);
-        setIsAdmin(false);
+        if (isMounted) {
+          setIsAdmin(false);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     checkAdminStatus();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
   return { isAdmin, loading };

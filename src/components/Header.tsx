@@ -43,6 +43,23 @@ export function Header({ categories }: HeaderProps) {
     setShowAuthModal(true);
   };
 
+  // Don't render if we're still initializing to prevent dispatcher errors
+  if (loading) {
+    return (
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center justify-between px-4">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              LocalDeals
+            </h1>
+          </div>
+          <div className="flex-1"></div>
+          <div className="w-8 h-8 animate-pulse bg-muted rounded-full" />
+        </div>
+      </header>
+    );
+  }
+
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -59,9 +76,7 @@ export function Header({ categories }: HeaderProps) {
 
           {/* Desktop User Actions */}
           <div className="hidden md:flex items-center space-x-2">
-            {loading ? (
-              <div className="w-8 h-8 animate-pulse bg-muted rounded-full" />
-            ) : user ? (
+            {user ? (
               <div className="flex items-center space-x-2">
                 {/* Favorites Button */}
                 <Button 
