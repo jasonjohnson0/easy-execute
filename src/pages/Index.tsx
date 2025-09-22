@@ -22,6 +22,7 @@ import { useBusinessCount } from '@/hooks/useBusinessCount';
 import { useActiveDealsCount } from '@/hooks/useActiveDealsCount';
 import { useAnalyticsTracking } from '@/hooks/useAnalyticsTracking';
 import { useAnalytics } from '@/lib/analytics/tracker';
+import { AnalyticsTestPanel } from '@/components/AnalyticsTestPanel';
 import { DEAL_CATEGORIES } from '@/data/mockData';
 import heroImage from '@/assets/hero-image.jpg';
 
@@ -67,12 +68,24 @@ const Index = () => {
     if (dealId && deals.length > 0) {
       const deal = deals.find(d => d.id === dealId);
       if (deal) {
+        console.log('🔍 Deal found via URL:', { dealId, title: deal.title, fromQR });
+        
         // Track QR scan if this came from a QR code
         if (fromQR && deal.business_id) {
+          console.log('📱 QR scan tracked:', { dealId, businessId: deal.business_id });
           trackQRScan(dealId, deal.business_id);
+          
+          // Also track in analytics system
+          analytics.track('qr_scan_completed', {
+            dealId,
+            dealTitle: deal.title,
+            businessId: deal.business_id,
+            userAgent: navigator.userAgent
+          });
         }
         
         // Track page view for analytics
+        console.log('📊 Page view tracked:', { dealId, fromQR });
         analytics.page('Deal View', {
           dealId,
           dealTitle: deal.title,
@@ -411,6 +424,15 @@ const Index = () => {
           )}
         </div>
       </section>
+
+      {/* Analytics Test Panel - Only show in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <section className="py-8 bg-muted/30">
+          <div className="container mx-auto px-4">
+            <AnalyticsTestPanel />
+          </div>
+        </section>
+      )}
 
       {/* Auth Modal for subscription */}
       <AuthModal

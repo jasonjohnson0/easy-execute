@@ -48,6 +48,13 @@ export function DealDetailsModal({ deal, open, onOpenChange, isSponsored = false
 
   const handleFavoriteClick = () => {
     if (!isSponsoredOffer(deal)) {
+      const action = isFavorited(deal.id) ? 'remove' : 'add';
+      console.log('❤️ Analytics: Deal favorited', { dealId: deal.id, action });
+      
+      // Track analytics
+      const analytics = require('@/lib/analytics/tracker').analytics;
+      analytics.dealFavorite(deal.id, deal.title, action);
+      
       toggleFavorite(deal.id);
     }
   };
@@ -70,6 +77,11 @@ export function DealDetailsModal({ deal, open, onOpenChange, isSponsored = false
     
     try {
       await updatePrintCount();
+      
+      // Track analytics
+      console.log('🖨️ Analytics: Deal printed', { dealId: deal.id, title: deal.title });
+      const analytics = require('@/lib/analytics/tracker').analytics;
+      analytics.dealPrint(deal.id, deal.title, deal.business_id || '');
       
       // Create print window with deal content
       const printWindow = window.open('', '_blank');

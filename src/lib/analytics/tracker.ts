@@ -60,16 +60,19 @@ class AnalyticsTracker {
 
     this.events.push(analyticsEvent);
     
+    // Always log individual events for debugging
+    console.log(`🔍 Analytics Event: ${event}`, {
+      ...properties,
+      sessionId: this.sessionId,
+      userId: this.userProperties?.userId,
+      timestamp: Date.now()
+    });
+    
     // Store in localStorage for persistence
     this.persistEvents();
     
-    // Send to backend if online
-    if (navigator.onLine) {
-      this.sendEvents();
-    }
-    
-    // Also log individual events for debugging
-    console.log(`🔍 Analytics: ${event}`, properties);
+    // Send to backend immediately for testing
+    this.sendEvents();
   }
 
   // Set user properties
@@ -222,17 +225,25 @@ class AnalyticsTracker {
     if (this.events.length === 0) return;
 
     try {
-      // Send events to console for debugging
-      console.log('📊 Analytics Events:', this.events);
+      // Always log events for debugging
+      console.log('📊 Analytics Events Batch:', {
+        eventCount: this.events.length,
+        sessionId: this.sessionId,
+        userId: this.userProperties?.userId,
+        events: this.events
+      });
       
       // In production, send to your analytics backend
       // Example: await fetch('/api/analytics', { method: 'POST', body: JSON.stringify(this.events) });
+      
+      // For now, keep events for review
+      console.log('📈 Individual Events:', this.events.map(e => `${e.event}: ${JSON.stringify(e.properties)}`));
       
       // Clear sent events
       this.events = [];
       localStorage.removeItem('analytics_events');
     } catch (error) {
-      console.warn('Failed to send analytics events:', error);
+      console.warn('❌ Failed to send analytics events:', error);
     }
   }
 
@@ -277,5 +288,6 @@ export function useAnalytics() {
     error: analytics.error.bind(analytics),
     performance: analytics.performance.bind(analytics),
     flush: analytics.flush.bind(analytics),
+    getSessionAnalytics: analytics.getSessionAnalytics.bind(analytics),
   };
 }
