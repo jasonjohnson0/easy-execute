@@ -46,9 +46,16 @@ const Index = () => {
   const loading = dealsLoading || sponsoredLoading || businessCountLoading || activeDealsCountLoading;
   const error = dealsError || sponsoredError;
 
-  // Handle deep linking to specific deals
+  // Handle deep linking to specific deals and referral codes
   useEffect(() => {
     const dealId = searchParams.get('deal');
+    const refCode = searchParams.get('ref');
+    
+    // Store referral code in localStorage for signup process
+    if (refCode) {
+      localStorage.setItem('referralCode', refCode.toLowerCase());
+    }
+    
     if (dealId && deals.length > 0) {
       const deal = deals.find(d => d.id === dealId);
       if (deal) {
@@ -56,14 +63,19 @@ const Index = () => {
           // User is authenticated, show deal immediately
           setSelectedDeal(deal);
           setShowDealModal(true);
-          // Clean up URL
-          setSearchParams({});
+          // Clean up URL but preserve referral code for sharing
+          const newParams = new URLSearchParams();
+          if (refCode) newParams.set('ref', refCode);
+          setSearchParams(newParams);
         } else {
           // User not authenticated, store deal ID and show auth modal
           setPendingDealId(dealId);
           setShowAuthModal(true);
         }
       }
+    } else if (refCode && !user) {
+      // Direct referral link without specific deal
+      setShowAuthModal(true);
     }
   }, [deals, user, searchParams, setSearchParams]);
 
@@ -75,8 +87,11 @@ const Index = () => {
         setSelectedDeal(deal);
         setShowDealModal(true);
         setPendingDealId(null);
-        // Clean up URL
-        setSearchParams({});
+        // Clean up URL but preserve referral code for sharing
+        const refCode = searchParams.get('ref');
+        const newParams = new URLSearchParams();
+        if (refCode) newParams.set('ref', refCode);
+        setSearchParams(newParams);
       }
     }
   }, [user, pendingDealId, deals, setSearchParams]);

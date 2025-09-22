@@ -11,8 +11,9 @@ import { usePlatformAnalytics } from '@/hooks/usePlatformData';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { BusinessManagement } from '@/components/admin/BusinessManagement';
 import { DealManagement } from '@/components/admin/DealManagement';
+import ReferralManagement from '@/components/admin/ReferralManagement';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line } from 'recharts';
-import { Users, Building2, Ticket, TrendingUp, Shield, Settings, BarChart3 } from 'lucide-react';
+import { Users, Building2, Ticket, TrendingUp, Shield, Settings, BarChart3, FileText } from 'lucide-react';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -91,7 +92,7 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview" className="gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
@@ -107,6 +108,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="deals" className="gap-2">
               <Ticket className="h-4 w-4" />
               Deals
+            </TabsTrigger>
+            <TabsTrigger value="referrals" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Referrals
             </TabsTrigger>
             <TabsTrigger value="analytics" className="gap-2">
               <TrendingUp className="h-4 w-4" />
@@ -277,6 +282,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="deals" className="mt-6">
             <DealManagement />
+          </TabsContent>
+
+          <TabsContent value="referrals" className="mt-6">
+            <ReferralManagement />
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-6">

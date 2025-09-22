@@ -195,6 +195,86 @@ export type Database = {
           },
         ]
       }
+      memberships: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          organization_id: string | null
+          payment_amount: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          organization_id?: string | null
+          payment_amount?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          organization_id?: string | null
+          payment_amount?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memberships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          commission_rate: number
+          contact_email: string
+          created_at: string
+          id: string
+          is_active: boolean
+          keyword: string
+          name: string
+          total_earnings: number
+          total_referrals: number
+          updated_at: string
+        }
+        Insert: {
+          commission_rate?: number
+          contact_email: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          keyword: string
+          name: string
+          total_earnings?: number
+          total_referrals?: number
+          updated_at?: string
+        }
+        Update: {
+          commission_rate?: number
+          contact_email?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          keyword?: string
+          name?: string
+          total_earnings?: number
+          total_referrals?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       qr_scans: {
         Row: {
           business_id: string
@@ -232,6 +312,48 @@ export type Database = {
             columns: ["deal_id"]
             isOneToOne: false
             referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_conversions: {
+        Row: {
+          commission_amount: number
+          created_at: string
+          id: string
+          membership_id: string
+          organization_id: string
+          user_id: string
+        }
+        Insert: {
+          commission_amount: number
+          created_at?: string
+          id?: string
+          membership_id: string
+          organization_id: string
+          user_id: string
+        }
+        Update: {
+          commission_amount?: number
+          created_at?: string
+          id?: string
+          membership_id?: string
+          organization_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_conversions_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "memberships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_conversions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -380,20 +502,31 @@ export type Database = {
           id: string
           referral_code: string
           referred_by: string | null
+          referred_by_organization: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           referral_code?: string
           referred_by?: string | null
+          referred_by_organization?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           referral_code?: string
           referred_by?: string | null
+          referred_by_organization?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_profiles_referred_by_organization_fkey"
+            columns: ["referred_by_organization"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -483,6 +616,10 @@ export type Database = {
         Returns: Json
       }
       get_qr_scan_analytics: {
+        Args: { end_date?: string; start_date?: string }
+        Returns: Json
+      }
+      get_referral_analytics: {
         Args: { end_date?: string; start_date?: string }
         Returns: Json
       }

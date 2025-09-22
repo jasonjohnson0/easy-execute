@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,6 +31,7 @@ export function AuthModal({
   const { signIn, signUp } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   
   // Form states
   const [email, setEmail] = useState('');
@@ -42,6 +43,16 @@ export function AuthModal({
     category: '',
     description: ''
   });
+
+  // Auto-populate referral code from localStorage when modal opens
+  useEffect(() => {
+    if (open && userType === 'hunter') {
+      const storedReferralCode = localStorage.getItem('referralCode');
+      if (storedReferralCode && !referralCode) {
+        setReferralCode(storedReferralCode);
+      }
+    }
+  }, [open, userType, referralCode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +73,8 @@ export function AuthModal({
           email, 
           password, 
           userType, 
-          userType === 'business' ? businessData : undefined
+          userType === 'business' ? businessData : undefined,
+          userType === 'hunter' ? referralCode : undefined
         );
         if (error) {
           setError(error.message);
@@ -96,6 +108,11 @@ export function AuthModal({
       description: ''
     });
     setError('');
+    // Don't reset referral code if it came from URL
+    const storedReferralCode = localStorage.getItem('referralCode');
+    if (!storedReferralCode) {
+      setReferralCode('');
+    }
   };
 
   return (
@@ -150,6 +167,25 @@ export function AuthModal({
                   required
                 />
               </div>
+
+              {mode === 'signup' && (
+                <div className="space-y-2">
+                  <Label htmlFor="referralCode">
+                    Referral Code <span className="text-muted-foreground">(optional)</span>
+                  </Label>
+                  <Input
+                    id="referralCode"
+                    type="text"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value.toLowerCase())}
+                    placeholder="e.g., pirates"
+                    className="lowercase"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter a referral code if you heard about us from a school or organization
+                  </p>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="business" className="space-y-4 mt-0">

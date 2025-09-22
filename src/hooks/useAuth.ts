@@ -101,7 +101,11 @@ export function useAuth() {
       // If this is a new hunter user without a profile, create it
       if (userMetadata?.user_type === 'hunter' && !profile) {
         try {
-          await createUserProfile(authUser);
+          // Get referral code from localStorage if this was a referral signup
+          const storedReferralCode = localStorage.getItem('referralCode');
+          await createUserProfile(authUser, storedReferralCode || undefined);
+          // Clear referral code after use
+          localStorage.removeItem('referralCode');
           // Refresh profile data after creation
           const { data: newProfile, error: refreshProfileError } = await supabase
             .from('user_profiles')
@@ -240,7 +244,7 @@ export function useAuth() {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, userType: 'hunter' | 'business', businessData?: any) => {
+  const signUp = async (email: string, password: string, userType: 'hunter' | 'business', businessData?: any, referralCode?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
@@ -250,7 +254,8 @@ export function useAuth() {
         emailRedirectTo: redirectUrl,
         data: {
           user_type: userType,
-          business_data: businessData
+          business_data: businessData,
+          referral_code: referralCode
         }
       }
     });
@@ -288,10 +293,24 @@ export function useAuth() {
     }
   };
 
-  const createUserProfile = async (user: User) => {
+  const createUserProfile = async (user: User, referralCode?: string) => {
     try {
+      // Check if referral code exists and is valid
+      let organizationId = null;
+      if (referralCode) {
+        const { data: organization } = await supabase
+          .from('organizations')
+          .select('id')
+          .eq('keyword', referralCode.toLowerCase())
+          .eq('is_active', true)
+          .single();
+        
+        organizationId = organization?.id || null;
+      }
+      
       const { error: profileInsertError } = await supabase.from('user_profiles').insert({
         id: user.id,
+        referred_by_organization: organizationId,
       });
 
       if (profileInsertError) {
