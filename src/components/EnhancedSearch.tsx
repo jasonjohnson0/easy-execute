@@ -11,7 +11,6 @@ import { Separator } from '@/components/ui/separator';
 import { Search, Filter, MapPin, Percent, Calendar as CalendarIcon, X, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
-import { useDealsCountSearch } from '@/hooks/useDealsCountSearch';
 
 export interface SearchFilters {
   query: string;
@@ -34,9 +33,6 @@ export function EnhancedSearch({ filters, onFiltersChange, categories, onShowSig
   const { user } = useAuth();
   const [showFilters, setShowFilters] = useState(false);
   const [discountRange, setDiscountRange] = useState([filters.discountMin, filters.discountMax]);
-  
-  // Get search counts for unauthenticated users
-  const { filteredCount, hasFilters, isAuthenticated } = useDealsCountSearch(filters);
 
   const updateFilters = (updates: Partial<SearchFilters>) => {
     onFiltersChange({ ...filters, ...updates });
@@ -225,12 +221,12 @@ export function EnhancedSearch({ filters, onFiltersChange, categories, onShowSig
       </div>
 
       {/* Search Results Teaser for Unauthenticated Users */}
-      {!isAuthenticated && hasFilters && onShowSignUp && (
+      {!user && activeFiltersCount > 0 && onShowSignUp && (
         <div className="bg-gradient-to-r from-primary/10 to-secondary/10 border-2 border-dashed border-primary/30 rounded-lg p-4 mb-4">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h3 className="font-semibold text-foreground">
-                {filteredCount} deal{filteredCount !== 1 ? 's' : ''} match your search
+                Multiple deals match your search
               </h3>
               <p className="text-sm text-muted-foreground">
                 Sign up to view exclusive local deals and save money
