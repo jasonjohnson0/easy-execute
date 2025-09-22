@@ -14,31 +14,31 @@ import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
-  <ErrorBoundary>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <NetworkStatus />
-      <BrowserRouter
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true,
-        }}
-      >
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={<BusinessDashboard />} />
-            <Route path="/business-setup" element={<BusinessSetup />} />
-            <Route path="/create-deal" element={<CreateDeal />} />
-            <Route path="/favorites" element={<Favorites />} />
-            <Route path="/production" element={<ProductionDashboard />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+  <BrowserRouter
+    future={{
+      v7_startTransition: true,
+      v7_relativeSplatPath: true,
+    }}
+  >
+    <ErrorBoundary>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <NetworkStatus />
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/dashboard" element={<BusinessDashboard />} />
+          <Route path="/business-setup" element={<BusinessSetup />} />
+          <Route path="/create-deal" element={<CreateDeal />} />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route path="/production" element={<ProductionDashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </TooltipProvider>
     </ErrorBoundary>
+  </BrowserRouter>
 );
 
 export default App;
