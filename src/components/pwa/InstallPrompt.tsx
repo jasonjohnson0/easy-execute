@@ -12,7 +12,7 @@ import {
   Info,
   ExternalLink
 } from 'lucide-react';
-import { usePWAInstall } from '@/lib/pwa/install';
+import { usePWAInstall } from '@/lib/pwa/installHook';
 
 interface InstallPromptProps {
   show?: boolean;

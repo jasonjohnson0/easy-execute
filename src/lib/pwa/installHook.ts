@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 
 // PWA Installation utilities
 interface BeforeInstallPromptEvent extends Event {
@@ -172,11 +172,11 @@ export const pwaInstaller = new PWAInstaller();
 
 // React hook for PWA installation
 export function usePWAInstall() {
-  const [canInstall, setCanInstall] = React.useState(pwaInstaller.canInstall());
-  const [isInstalled, setIsInstalled] = React.useState(pwaInstaller.isAppInstalled());
-  const [isInstalling, setIsInstalling] = React.useState(false);
+  const [canInstall, setCanInstall] = useState(pwaInstaller.canInstall());
+  const [isInstalled, setIsInstalled] = useState(pwaInstaller.isAppInstalled());
+  const [isInstalling, setIsInstalling] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleCanInstall = (available: boolean) => setCanInstall(available);
     const handleInstalled = (installed: boolean) => setIsInstalled(installed);
 
@@ -206,38 +206,4 @@ export function usePWAInstall() {
     install,
     getInstructions: pwaInstaller.getInstallInstructions.bind(pwaInstaller),
   };
-}
-
-// Service Worker registration
-export function registerServiceWorker() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        console.log('Service Worker registered:', registration);
-        
-        // Check for updates
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New content is available, prompt user to refresh
-                if (confirm('New version available! Refresh to update?')) {
-                  newWorker.postMessage({ type: 'SKIP_WAITING' });
-                  window.location.reload();
-                }
-              }
-            });
-          }
-        });
-      })
-      .catch((error) => {
-        console.error('Service Worker registration failed:', error);
-      });
-
-    // Handle service worker updates
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      window.location.reload();
-    });
-  }
 }
