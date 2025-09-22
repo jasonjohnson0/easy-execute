@@ -48,6 +48,8 @@ interface UserEditorProps {
 }
 
 export function UserEditor({ user, open, onOpenChange }: UserEditorProps) {
+  if (!user) return null;
+
   const [banDuration, setBanDuration] = useState<string>('24');
   const [banReason, setBanReason] = useState('');
   const [disableReason, setDisableReason] = useState('');
@@ -62,8 +64,6 @@ export function UserEditor({ user, open, onOpenChange }: UserEditorProps) {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const userManagement = useUserManagement();
-
-  if (!user) return null;
 
   const isAdmin = user.role === 'admin';
   const isBanned = user.status === 'banned';
