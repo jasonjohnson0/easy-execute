@@ -11,6 +11,7 @@ import { usePlatformAnalytics } from '@/hooks/usePlatformData';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { BusinessManagement } from '@/components/admin/BusinessManagement';
 import { DealManagement } from '@/components/admin/DealManagement';
+import { RealTimeAnalytics } from '@/components/admin/RealTimeAnalytics';
 import ReferralManagement from '@/components/admin/ReferralManagement';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line } from 'recharts';
 import { Users, Building2, Ticket, TrendingUp, Shield, Settings, BarChart3, FileText } from 'lucide-react';
@@ -289,108 +290,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-6">
-            {/* Platform Analytics Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* User Signups Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>User Signups (30 Days)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={platformAnalytics?.user_signups_by_day || []}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <Line 
-                          type="monotone" 
-                          dataKey="signups" 
-                          stroke="#3b82f6" 
-                          strokeWidth={2}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Business Signups Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Business Signups (30 Days)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={platformAnalytics?.business_signups_by_day || []}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <Line 
-                          type="monotone" 
-                          dataKey="signups" 
-                          stroke="#16a34a" 
-                          strokeWidth={2}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Deals Created Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Deals Created (30 Days)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={platformAnalytics?.deals_created_by_day || []}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <Line 
-                          type="monotone" 
-                          dataKey="deals" 
-                          stroke="#dc2626" 
-                          strokeWidth={2}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* QR Scans Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>QR Scans (30 Days)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={platformAnalytics?.qr_scans_by_day || []}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <Line 
-                          type="monotone" 
-                          dataKey="scans" 
-                          stroke="#f59e0b" 
-                          strokeWidth={2}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <RealTimeAnalytics />
           </TabsContent>
         </Tabs>
       </div>
