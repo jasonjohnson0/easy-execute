@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useUserManagement } from '@/hooks/useUserManagement';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import { 
   Shield, 
   ShieldOff, 
@@ -18,8 +20,10 @@ import {
   Calendar,
   AlertTriangle,
   Clock,
-  User
+  User,
+  Edit
 } from 'lucide-react';
+import React from 'react';
 import { format } from 'date-fns';
 
 interface User {
@@ -49,6 +53,13 @@ export function UserEditor({ user, open, onOpenChange }: UserEditorProps) {
   const [disableReason, setDisableReason] = useState('');
   const [actionType, setActionType] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    displayName: '',
+    businessName: '',
+    businessCategory: ''
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const userManagement = useUserManagement();
 
@@ -59,9 +70,57 @@ export function UserEditor({ user, open, onOpenChange }: UserEditorProps) {
   const isDisabled = user.status === 'disabled';
   const isActive = user.status === 'active' || !user.status;
 
+  // Initialize edit data when user changes
+  React.useEffect(() => {
+    if (user) {
+      setEditData({
+        displayName: '', // We'll need to get this from user_profiles if it exists
+        businessName: user.business_profile?.business_name || '',
+        businessCategory: user.business_profile?.category || ''
+      });
+    }
+  }, [user]);
+
   const handleAction = (action: string) => {
     setActionType(action);
     setShowConfirm(true);
+  };
+
+  const handleSaveProfileChanges = async () => {
+    if (!user) return;
+
+    setIsUpdating(true);
+    try {
+      // Update business profile if it exists
+      if (user.business_profile && (editData.businessName || editData.businessCategory)) {
+        const { error: businessError } = await supabase
+          .from('businesses')
+          .update({
+            name: editData.businessName || user.business_profile.business_name,
+            category: editData.businessCategory || user.business_profile.category
+          })
+          .eq('id', user.id);
+
+        if (businessError) throw businessError;
+      }
+
+      toast({
+        title: "Profile Updated",
+        description: "User profile has been updated successfully.",
+      });
+
+      setIsEditing(false);
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error('Profile update failed:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const confirmAction = async () => {
@@ -166,7 +225,18 @@ export function UserEditor({ user, open, onOpenChange }: UserEditorProps) {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">User Information</h3>
-                {getStatusBadge()}
+                <div className="flex items-center gap-2">
+                  {getStatusBadge()}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditing(!isEditing)}
+                    disabled={isUpdating}
+                  >
+                    <Edit className="w-4 h-4 mr-1" />
+                    {isEditing ? 'Cancel' : 'Edit'}
+                  </Button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
@@ -194,11 +264,44 @@ export function UserEditor({ user, open, onOpenChange }: UserEditorProps) {
                 </div>
               </div>
 
+              {/* Editable Business Profile */}
               {user.business_profile && (
-                <div>
+                <div className="space-y-3">
                   <Label className="text-muted-foreground">Business Account</Label>
-                  <p className="font-medium">{user.business_profile.business_name}</p>
-                  <p className="text-sm text-muted-foreground">{user.business_profile.category}</p>
+                  {isEditing ? (
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="businessName">Business Name</Label>
+                        <Input
+                          id="businessName"
+                          value={editData.businessName}
+                          onChange={(e) => setEditData(prev => ({ ...prev, businessName: e.target.value }))}
+                          placeholder={user.business_profile.business_name}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="businessCategory">Category</Label>
+                        <Input
+                          id="businessCategory"
+                          value={editData.businessCategory}
+                          onChange={(e) => setEditData(prev => ({ ...prev, businessCategory: e.target.value }))}
+                          placeholder={user.business_profile.category}
+                        />
+                      </div>
+                      <Button 
+                        onClick={handleSaveProfileChanges}
+                        disabled={isUpdating}
+                        size="sm"
+                      >
+                        {isUpdating ? 'Saving...' : 'Save Changes'}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="font-medium">{user.business_profile.business_name}</p>
+                      <p className="text-sm text-muted-foreground">{user.business_profile.category}</p>
+                    </div>
+                  )}
                 </div>
               )}
 
