@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -7,6 +8,7 @@ import { Header } from '@/components/Header';
 import { DealCard } from '@/components/DealCard';
 import { AuthModal } from '@/components/AuthModal';
 import { WelcomeModal } from '@/components/WelcomeModal';
+import { DealDetailsModal } from '@/components/DealDetailsModal';
 import { EnhancedSearch } from '@/components/EnhancedSearch';
 import { RecentlyViewedSection } from '@/components/RecentlyViewedSection';
 import { TrendingSection } from '@/components/TrendingSection';
@@ -22,10 +24,14 @@ import heroImage from '@/assets/hero-image.jpg';
 
 const Index = () => {
   const { user, showWelcomeModal, setShowWelcomeModal } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [layout, setLayout] = useState<'grid' | 'coupon'>('grid');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
   const [authUserType, setAuthUserType] = useState<'hunter' | 'business'>('hunter');
+  const [selectedDeal, setSelectedDeal] = useState<any>(null);
+  const [showDealModal, setShowDealModal] = useState(false);
+  const [pendingDealId, setPendingDealId] = useState<string | null>(null);
 
   // React Query hooks for data fetching
   const { data: deals = [], isLoading: dealsLoading, error: dealsError, refetch: refetchDeals } = useDeals();
@@ -39,6 +45,41 @@ const Index = () => {
   // Combined loading state
   const loading = dealsLoading || sponsoredLoading || businessCountLoading || activeDealsCountLoading;
   const error = dealsError || sponsoredError;
+
+  // Handle deep linking to specific deals
+  useEffect(() => {
+    const dealId = searchParams.get('deal');
+    if (dealId && deals.length > 0) {
+      const deal = deals.find(d => d.id === dealId);
+      if (deal) {
+        if (user) {
+          // User is authenticated, show deal immediately
+          setSelectedDeal(deal);
+          setShowDealModal(true);
+          // Clean up URL
+          setSearchParams({});
+        } else {
+          // User not authenticated, store deal ID and show auth modal
+          setPendingDealId(dealId);
+          setShowAuthModal(true);
+        }
+      }
+    }
+  }, [deals, user, searchParams, setSearchParams]);
+
+  // Handle showing deal after authentication
+  useEffect(() => {
+    if (user && pendingDealId && deals.length > 0) {
+      const deal = deals.find(d => d.id === pendingDealId);
+      if (deal) {
+        setSelectedDeal(deal);
+        setShowDealModal(true);
+        setPendingDealId(null);
+        // Clean up URL
+        setSearchParams({});
+      }
+    }
+  }, [user, pendingDealId, deals, setSearchParams]);
 
   // Debug filtering results (keep for development)
   console.log('🔍 Enhanced filtering results:', {
@@ -318,6 +359,15 @@ const Index = () => {
         onOpenChange={setShowWelcomeModal}
         businessName={user?.businessProfile?.name}
       />
+
+      {/* Deal Details Modal for deep linking */}
+      {selectedDeal && (
+        <DealDetailsModal
+          deal={selectedDeal}
+          open={showDealModal}
+          onOpenChange={setShowDealModal}
+        />
+      )}
     </div>
   );
 };
