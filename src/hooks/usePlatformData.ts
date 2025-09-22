@@ -20,7 +20,7 @@ interface PlatformUser {
   ban_reason?: string;
 }
 
-interface PlatformBusiness {
+export interface PlatformBusiness {
   id: string;
   name: string;
   email: string;
@@ -28,6 +28,7 @@ interface PlatformBusiness {
   address: string | null;
   category: string;
   description: string | null;
+  logo_url?: string | null;
   subscription_status: string;
   subscription_plan: string;
   referral_code: string;

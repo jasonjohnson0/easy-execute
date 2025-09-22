@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { sanitizeInput, sanitizeHTML, sanitizeEmail, sanitizePhone } from '@/lib/security/sanitization';
 
 // Business categories from existing code
-const BUSINESS_CATEGORIES = [
+export const BUSINESS_CATEGORIES = [
   'Restaurant', 'Retail', 'Services', 'Health & Beauty', 'Entertainment',
   'Automotive', 'Home & Garden', 'Technology', 'Travel', 'Other'
 ] as const;

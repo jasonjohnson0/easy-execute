@@ -1,12 +1,23 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { usePlatformBusinesses } from '@/hooks/usePlatformData';
-import { Building2, Mail, Phone, MapPin } from 'lucide-react';
+import { BusinessEditor } from './BusinessEditor';
+import { Building2, Mail, Phone, MapPin, Edit } from 'lucide-react';
 import { format } from 'date-fns';
+import { PlatformBusiness } from '@/hooks/usePlatformData';
 
 export function BusinessManagement() {
   const { data: businesses, isLoading, error } = usePlatformBusinesses();
+  const [selectedBusiness, setSelectedBusiness] = useState<PlatformBusiness | null>(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+
+  const handleEditBusiness = (business: PlatformBusiness) => {
+    setSelectedBusiness(business);
+    setIsEditorOpen(true);
+  };
 
   if (error) {
     return (
@@ -72,6 +83,7 @@ export function BusinessManagement() {
                   <TableHead>Subscription</TableHead>
                   <TableHead>Deals</TableHead>
                   <TableHead>Created</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -129,6 +141,16 @@ export function BusinessManagement() {
                     <TableCell>
                       {format(new Date(business.created_at), 'MMM dd, yyyy')}
                     </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditBusiness(business)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -136,6 +158,12 @@ export function BusinessManagement() {
           </div>
         )}
       </CardContent>
+
+      <BusinessEditor
+        business={selectedBusiness}
+        open={isEditorOpen}
+        onOpenChange={setIsEditorOpen}
+      />
     </Card>
   );
 }
