@@ -3,9 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Share2, Check, Facebook, Twitter, MessageCircle, Mail } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Copy, Share2, Check, Facebook, Twitter, MessageCircle, Mail, QrCode } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Deal, SponsoredOffer } from '@/types/database';
+import QRCode from 'qrcode';
 
 interface DealShareModalProps {
   open: boolean;
@@ -15,8 +17,25 @@ interface DealShareModalProps {
 
 export function DealShareModal({ open, onOpenChange, deal }: DealShareModalProps) {
   const [copied, setCopied] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
 
   const dealUrl = `${window.location.origin}/?deal=${deal.id}`;
+
+  // Generate QR code when modal opens
+  useEffect(() => {
+    if (open && !qrCodeUrl) {
+      QRCode.toDataURL(dealUrl, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      })
+        .then(setQrCodeUrl)
+        .catch(console.error);
+    }
+  }, [open, dealUrl, qrCodeUrl]);
 
   const getDiscountText = () => {
     if (deal.discount_type === 'percentage') {
@@ -104,101 +123,141 @@ export function DealShareModal({ open, onOpenChange, deal }: DealShareModalProps
             </div>
           </div>
 
-          {/* Share Link */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Share Link</label>
-            <div className="flex gap-2">
-              <Input
-                value={dealUrl}
-                readOnly
-                className="flex-1"
-              />
-              <Button
-                variant={copied ? "default" : "outline"}
-                size="sm"
-                onClick={copyToClipboard}
-                className="gap-2 px-3"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4" />
-                    Copy
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
+          {/* Tabbed Content */}
+          <Tabs defaultValue="link" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="link" className="flex items-center gap-2">
+                <Share2 className="w-4 h-4" />
+                Share Link
+              </TabsTrigger>
+              <TabsTrigger value="qr" className="flex items-center gap-2">
+                <QrCode className="w-4 h-4" />
+                QR Code
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Social Sharing */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium">Share on Social Media</label>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => shareToSocial('twitter')}
-                className="gap-2"
-              >
-                <Twitter className="w-4 h-4" />
-                Twitter
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => shareToSocial('facebook')}
-                className="gap-2"
-              >
-                <Facebook className="w-4 h-4" />
-                Facebook
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => shareToSocial('whatsapp')}
-                className="gap-2"
-              >
-                <MessageCircle className="w-4 h-4" />
-                WhatsApp
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => shareToSocial('email')}
-                className="gap-2"
-              >
-                <Mail className="w-4 h-4" />
-                Email
-              </Button>
-            </div>
-          </div>
+            <TabsContent value="link" className="space-y-4 mt-4">
+              {/* Share Link */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Share Link</label>
+                <div className="flex gap-2">
+                  <Input
+                    value={dealUrl}
+                    readOnly
+                    className="flex-1"
+                  />
+                  <Button
+                    variant={copied ? "default" : "outline"}
+                    size="sm"
+                    onClick={copyToClipboard}
+                    className="gap-2 px-3"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
 
-          {/* Native Share API (if available) */}
-          {navigator.share && (
-            <Button
-              variant="default"
-              onClick={async () => {
-                try {
-                  await navigator.share({
-                    title: deal.title,
-                    text: shareMessage,
-                    url: dealUrl,
-                  });
-                } catch (err) {
-                  // User cancelled or error occurred
-                  console.log('Share cancelled or failed');
-                }
-              }}
-              className="w-full gap-2"
-            >
-              <Share2 className="w-4 h-4" />
-              Share Deal
-            </Button>
-          )}
+              {/* Social Sharing */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium">Share on Social Media</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => shareToSocial('twitter')}
+                    className="gap-2"
+                  >
+                    <Twitter className="w-4 h-4" />
+                    Twitter
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => shareToSocial('facebook')}
+                    className="gap-2"
+                  >
+                    <Facebook className="w-4 h-4" />
+                    Facebook
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => shareToSocial('whatsapp')}
+                    className="gap-2"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    WhatsApp
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => shareToSocial('email')}
+                    className="gap-2"
+                  >
+                    <Mail className="w-4 h-4" />
+                    Email
+                  </Button>
+                </div>
+              </div>
+
+              {/* Native Share API (if available) */}
+              {navigator.share && (
+                <Button
+                  variant="default"
+                  onClick={async () => {
+                    try {
+                      await navigator.share({
+                        title: deal.title,
+                        text: shareMessage,
+                        url: dealUrl,
+                      });
+                    } catch (err) {
+                      // User cancelled or error occurred
+                      console.log('Share cancelled or failed');
+                    }
+                  }}
+                  className="w-full gap-2"
+                >
+                  <Share2 className="w-4 h-4" />
+                  Share Deal
+                </Button>
+              )}
+            </TabsContent>
+
+            <TabsContent value="qr" className="space-y-4 mt-4">
+              <div className="text-center space-y-4">
+                <label className="text-sm font-medium">Scan QR Code to View Deal</label>
+                <div className="flex justify-center">
+                  <div className="bg-white p-4 rounded-lg border shadow-sm">
+                    {qrCodeUrl ? (
+                      <img 
+                        src={qrCodeUrl} 
+                        alt="QR Code for deal"
+                        className="w-48 h-48"
+                      />
+                    ) : (
+                      <div className="w-48 h-48 bg-muted rounded animate-pulse flex items-center justify-center">
+                        <QrCode className="w-12 h-12 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground font-mono break-all px-4">
+                  {dealUrl}
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </DialogContent>
     </Dialog>
