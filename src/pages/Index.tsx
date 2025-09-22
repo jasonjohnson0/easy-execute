@@ -425,15 +425,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Analytics Test Panel - Only show in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <section className="py-8 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <AnalyticsTestPanel />
-          </div>
-        </section>
-      )}
-
       {/* Auth Modal for subscription */}
       <AuthModal
         open={showAuthModal}
