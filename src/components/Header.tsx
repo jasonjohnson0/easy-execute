@@ -11,8 +11,11 @@ import {
   Plus,
   ChevronDown,
   Heart,
-  Shield
+  Shield,
+  Sun,
+  Moon
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useFavoritesQuery } from "@/hooks/useFavoritesQuery";
@@ -26,11 +29,11 @@ interface HeaderProps {
 }
 
 export function Header({ categories }: HeaderProps) {
-  // Force cache refresh - removed search functionality
   const { user, loading, signOut } = useAuth();
   const { isAdmin } = useAdminAuth();
   const { favorites } = useFavoritesQuery();
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
@@ -74,8 +77,17 @@ export function Header({ categories }: HeaderProps) {
           {/* Spacer for layout */}
           <div className="flex-1"></div>
 
-          {/* Desktop User Actions */}
+          {/* Theme Toggle + Desktop User Actions */}
           <div className="hidden md:flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              aria-label="Toggle theme"
+            >
+              <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            </Button>
             {user ? (
               <div className="flex items-center space-x-2">
                 {/* Favorites Button */}
@@ -139,7 +151,7 @@ export function Header({ categories }: HeaderProps) {
                     variant="ghost"
                     size="sm"
                     onClick={() => navigate('/admin')}
-                    className="gap-2 text-orange-600 hover:text-orange-700"
+                    className="gap-2 text-warning hover:text-warning/80"
                   >
                     <Shield className="w-4 h-4" />
                     Admin
@@ -244,7 +256,7 @@ export function Header({ categories }: HeaderProps) {
                   {isAdmin && (
                     <Button
                       variant="ghost"
-                      className="w-full justify-start gap-2 text-orange-600 hover:text-orange-700"
+                      className="w-full justify-start gap-2 text-warning hover:text-warning/80"
                       onClick={() => {
                         navigate('/admin');
                         setMobileMenuOpen(false);
@@ -254,6 +266,14 @@ export function Header({ categories }: HeaderProps) {
                       Admin Dashboard
                     </Button>
                   )}
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2"
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  >
+                    {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                    {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                  </Button>
                   <div className="w-full" onClick={() => setMobileMenuOpen(false)}>
                     <ProfileDropdown />
                   </div>

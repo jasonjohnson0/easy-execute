@@ -1,73 +1,77 @@
-# Welcome to your Lovable project
+# Easy Execute — Local Deals Platform
 
-## Project info
+**Share and discover local deals with QR codes, tracking, and analytics.**
 
-**URL**: https://lovable.dev/projects/edc6a0b7-0ed4-4d87-b7f6-b412445a2fc4
+Easy Execute connects local businesses with deal-hungry consumers. Businesses create offers (percentage off, BOGO, fixed discount), generate trackable QR codes, and monitor performance via a real-time analytics dashboard. Consumers browse, filter, favorite, and share deals — all from a fast, installable PWA.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- 🏷️ **Deal Management** — Create, edit, and expire deals with multiple discount types
+- 📱 **QR Codes** — Dynamic generation with referral tracking (`?ref=userId`)
+- 📊 **Analytics Dashboard** — Visualize scans, shares, and signups over time (Recharts)
+- 🔍 **Search & Filter** — Category, location, discount range, expiration, and sort
+- ❤️ **Favorites** — Save and revisit deals
+- 🌗 **Dark Mode** — System-aware theme toggle
+- 🔔 **Real-time Updates** — Supabase Realtime subscriptions
+- 💳 **Stripe Subscriptions** — Membership gating with checkout & customer portal
+- 📲 **PWA** — Installable, offline-capable, service worker caching
+- 🔒 **Security** — CSP headers, DOMPurify sanitization, RLS policies, rate limiting
 
-**Use Lovable**
+## Tech Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/edc6a0b7-0ed4-4d87-b7f6-b412445a2fc4) and start prompting.
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui |
+| Backend | Supabase (Postgres, Auth, Edge Functions, Realtime, Storage) |
+| Payments | Stripe (Checkout, Customer Portal, Webhooks) |
+| Charts | Recharts |
+| PWA | Custom service worker, Web App Manifest |
 
-Changes made via Lovable will be committed automatically to this repo.
+## Getting Started
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+```bash
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Or use the [Lovable editor](https://lovable.dev/projects/edc6a0b7-0ed4-4d87-b7f6-b412445a2fc4) to develop in-browser.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Environment Variables
 
-**Use GitHub Codespaces**
+Automatically populated by Lovable/Supabase connection:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_SUPABASE_PROJECT_ID`
 
-## What technologies are used for this project?
+Edge function secrets (configured in Supabase dashboard):
 
-This project is built with:
+- `STRIPE_SECRET_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Project Structure
 
-## How can I deploy this project?
+```
+src/
+├── components/     # UI components (Header, DealCard, modals, admin panels)
+├── hooks/          # Custom React hooks (useAuth, useDeals, useSubscription…)
+├── lib/            # Utilities (security, analytics, performance, PWA)
+├── pages/          # Route-level components
+├── types/          # TypeScript type definitions
+└── integrations/   # Supabase client & generated types
 
-Simply open [Lovable](https://lovable.dev/projects/edc6a0b7-0ed4-4d87-b7f6-b412445a2fc4) and click on Share -> Publish.
+supabase/
+├── functions/      # Edge functions (Stripe checkout, subscription checks)
+├── migrations/     # Database migrations
+└── config.toml     # Supabase project config
+```
 
-## Can I connect a custom domain to my Lovable project?
+## Deployment
 
-Yes, you can!
+Click **Share → Publish** in the Lovable editor, or push to the connected GitHub repo for automatic deploys.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## License
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Private — all rights reserved.
