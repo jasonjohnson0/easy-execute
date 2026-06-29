@@ -1,7 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { registerServiceWorker } from '@/lib/pwa/serviceWorker';
 import { applySecurityHeaders } from '@/lib/security/headers';
 import App from './App.tsx';
 import './index.css';
@@ -9,8 +8,15 @@ import './index.css';
 // Apply security headers
 applySecurityHeaders();
 
-// Register service worker for PWA functionality
-registerServiceWorker();
+// Unregister any previously installed service workers (kill-switch cleanup).
+// A prior SW cached an old bundle that surfaced a stale "Device Check Failed"
+// toast. We no longer register a service worker from the app.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker
+    .getRegistrations()
+    .then((regs) => regs.forEach((r) => r.unregister()))
+    .catch(() => {});
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
