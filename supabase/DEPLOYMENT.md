@@ -37,10 +37,10 @@ Two migration files are in git but have **not** been applied to the database:
 | File | What it does |
 |---|---|
 | `20260901120000_public_embed_api.sql` | Adds the public read API the WordPress embed needs |
-| `20260901130000_fix_membership_and_business_rls.sql` | Closes the paywall bypass and the business contact data exposure |
+| `20260901130000_fix_membership_and_business_rls.sql` | Closes the paywall bypass; consolidates the accumulated `businesses` SELECT policies |
 
 Until they are run, the WordPress widget will render "No active deals right
-now" no matter what, and both security holes are still open in production.
+now" no matter what, and the paywall bypass is still open in production.
 
 ## Step 1 — check the real state first
 
@@ -67,8 +67,10 @@ WHERE schemaname = 'public' AND tablename = 'memberships'
 ORDER BY cmd, policyname;
 
 -- Who can read business contact data?
--- Any SELECT policy whose qual is "true" means every logged-in user can read
--- every business's email, phone, and address.
+-- Expect owner-only. A policy whose qual is "true" would mean every logged-in
+-- user can read every business's email, phone, and address; a clean replay of
+-- the migration history does not produce one, but this database was built
+-- out-of-band, so check rather than assume.
 SELECT policyname, cmd, qual
 FROM pg_policies
 WHERE schemaname = 'public' AND tablename = 'businesses'
@@ -95,8 +97,8 @@ function uses `CREATE OR REPLACE`, and the new column uses `ADD COLUMN IF NOT
 EXISTS`. If a run half-fails, fix the error and run the whole file again.
 
 Then re-run the Step 1 queries. You should see five functions, no
-`"Users can create their own memberships"` policy, no `businesses` SELECT policy
-with a `qual` of `true`, and a `source` column.
+`"Users can create their own memberships"` policy, exactly two `businesses`
+SELECT policies (owner and admin), and a `source` column.
 
 ## Step 3 — audit for forged memberships
 

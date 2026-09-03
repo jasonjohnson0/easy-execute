@@ -13,20 +13,34 @@
 --    policy. No client code inserts memberships, so dropping the user-facing
 --    INSERT policy removes the hole without changing any working path.
 --
--- 2. Business contact data exposure
---    The most recent SELECT policy on public.businesses was USING (true) with
---    GRANT SELECT TO authenticated, on the stated assumption that application
---    code would only ask for safe columns. RLS filters rows, not columns, so any
---    authenticated user could select * and read every business's email, phone,
---    address, subscription status, and referral code. Signup is open, so this
---    was effectively public.
+-- 2. businesses SELECT policy consolidation (hardening, not an open hole)
+--    On 2025-09-21 a policy named "Public can view safe business fields for
+--    deals" was created USING (true), which would have let any authenticated
+--    user select * and read every business's email, phone, address, and
+--    referral code. It was dropped 59 seconds later by migration 20250921212326
+--    ("Remove the overly permissive policy we just created"), so a clean replay
+--    of this history ends with owner-only SELECT and the table is not exposed.
 --
---    Public and cross-business reads already go through SECURITY DEFINER
---    functions that return a vetted column set (get_safe_businesses,
+--    What is left is eleven differently-named SELECT policies created and
+--    dropped across that afternoon. Policies are OR'd, so the table's safety
+--    depends on none of them having survived. This database was built by
+--    applying migrations out-of-band rather than through a tracked pipeline, so
+--    the file history is evidence about production, not proof of it.
+--
+--    This section drops all of them by name and leaves exactly two: owner and
+--    admin. If production matches the file history, this is a no-op that makes
+--    the intent explicit. If any permissive policy did survive, this removes it.
+--    Run supabase/manual/check_current_state.sql to see which case you are in.
+--
+--    Note that "Admins can view all businesses" is new. Admins previously read
+--    businesses only through get_all_businesses(), which is unaffected; this
+--    grants direct table SELECT to admins as well.
+--
+--    Public and cross-business reads go through SECURITY DEFINER functions that
+--    return a vetted column set (get_safe_businesses,
 --    get_deals_with_safe_business_info, get_public_deals, get_public_business,
 --    get_all_businesses). Those bypass RLS and keep working. Every direct table
---    read in the client is scoped to the caller's own row, so owner-only SELECT
---    is sufficient.
+--    read in the client is scoped to the caller's own row.
 
 /* ------------------------------------------------------- 1. memberships --- */
 
@@ -67,6 +81,10 @@ DROP POLICY IF EXISTS "Restrict sensitive business data access" ON public.busine
 DROP POLICY IF EXISTS "Authenticated businesses can view only their own profile" ON public.businesses;
 DROP POLICY IF EXISTS "Businesses can view their own profile" ON public.businesses;
 DROP POLICY IF EXISTS "Business owners can view their full profile" ON public.businesses;
+
+-- Also the replacements below, so this migration can be re-run safely.
+DROP POLICY IF EXISTS "Business owners can view their own profile" ON public.businesses;
+DROP POLICY IF EXISTS "Admins can view all businesses" ON public.businesses;
 
 CREATE POLICY "Business owners can view their own profile"
 ON public.businesses
