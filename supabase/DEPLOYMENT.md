@@ -9,8 +9,23 @@ has ever pointed at. It is named in three places, all in agreement:
 - `src/integrations/supabase/client.ts` — the URL the app connects to
 - `.env` — `VITE_SUPABASE_URL`
 
-No other project reference exists anywhere in the repo. The project you see in
-the Supabase dashboard is the one serving production.
+No other project reference exists anywhere in the repo.
+
+**Check the ref before you run anything.** A Supabase account can hold many
+projects and the dashboard opens whichever you looked at last. The ref is in the
+URL:
+
+    supabase.com/dashboard/project/nmsnsnfqufykwpesnjup/sql/...
+                                   ^^^^^^^^^^^^^^^^^^^^
+
+If that segment reads anything else, you are in a different project and the SQL
+here does not belong to it. This has already happened once in this repo's life:
+the migrations were run against a project named "JCT Event Calendar"
+(ref rtwyfsuhzpapviukycjg) and failed with `relation "public.memberships" does
+not exist`. Nothing was damaged, because both files abort on their first
+statement. Both migrations now carry a guard that refuses outright with a
+message naming the correct ref, and `check_current_state.sql` reports WRONG
+PROJECT as its first row.
 
 ## "Not connected to a repository" is expected
 

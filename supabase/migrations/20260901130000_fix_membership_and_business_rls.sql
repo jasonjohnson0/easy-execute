@@ -42,6 +42,21 @@
 --    get_all_businesses). Those bypass RLS and keep working. Every direct table
 --    read in the client is scoped to the caller's own row.
 
+-- Refuse early and legibly if this is not the Easy Execute database.
+DO $guard$
+BEGIN
+  IF to_regclass('public.memberships') IS NULL
+     OR to_regclass('public.businesses') IS NULL THEN
+    RAISE EXCEPTION
+      'Wrong project. This migration belongs to Easy Execute (ref nmsnsnfqufykwpesnjup), which has memberships and businesses tables. The project you are connected to does not. Switch projects in the Supabase dashboard and check the ref in the URL.';
+  END IF;
+  IF to_regproc('public.has_role') IS NULL THEN
+    RAISE EXCEPTION
+      'public.has_role() is missing. This database is not at the expected baseline; do not apply this migration until that is understood.';
+  END IF;
+END
+$guard$;
+
 /* ------------------------------------------------------- 1. memberships --- */
 
 DROP POLICY IF EXISTS "Users can create their own memberships" ON public.memberships;

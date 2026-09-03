@@ -1,5 +1,9 @@
 -- Public, anonymous-safe read API for third-party embeds (WordPress widget).
 --
+-- Belongs to the Easy Execute project, ref nmsnsnfqufykwpesnjup. Running it
+-- against a different project fails on the guard below rather than part way
+-- through.
+--
 -- The existing get_deals_with_safe_business_info() requires auth.uid() IS NOT NULL,
 -- so it returns zero rows to an anonymous visitor on someone else's website. These
 -- functions serve the same data to anonymous callers, but expose a deliberately
@@ -9,6 +13,18 @@
 -- All three are SECURITY DEFINER with a pinned search_path, EXECUTE revoked from
 -- PUBLIC and granted explicitly, and a hard server-side row cap so an embed cannot
 -- be turned into a bulk export endpoint.
+
+-- Refuse early and legibly if this is not the Easy Execute database.
+DO $guard$
+BEGIN
+  IF to_regclass('public.deals') IS NULL
+     OR to_regclass('public.businesses') IS NULL
+     OR to_regclass('public.sponsored_offers') IS NULL THEN
+    RAISE EXCEPTION
+      'Wrong project. This migration belongs to Easy Execute (ref nmsnsnfqufykwpesnjup), which has deals, businesses and sponsored_offers tables. The project you are connected to does not. Switch projects in the Supabase dashboard and check the ref in the URL.';
+  END IF;
+END
+$guard$;
 
 -- Active, unexpired deals. Optionally scoped to one business and/or category.
 CREATE OR REPLACE FUNCTION public.get_public_deals(

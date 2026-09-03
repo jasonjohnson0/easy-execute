@@ -11,6 +11,24 @@
 SELECT check_name, result, verdict
 FROM (
 
+  -- Are you even in the right project? Supabase accounts hold many, and the
+  -- dashboard remembers whichever you opened last. Check this row first: if it
+  -- says WRONG PROJECT, nothing below it means anything.
+  SELECT
+    0 AS sort,
+    'Is this the Easy Execute database?' AS check_name,
+    count(*)::text || ' of 6 core tables found' AS result,
+    CASE WHEN count(*) = 6
+      THEN 'OK'
+      ELSE 'WRONG PROJECT -> expected ref nmsnsnfqufykwpesnjup; check the ref in the dashboard URL'
+    END AS verdict
+  FROM information_schema.tables
+  WHERE table_schema = 'public'
+    AND table_name IN ('businesses', 'deals', 'memberships',
+                       'user_roles', 'user_profiles', 'sponsored_offers')
+
+  UNION ALL
+
   -- The three functions the WordPress embed reads from.
   SELECT
     1 AS sort,
